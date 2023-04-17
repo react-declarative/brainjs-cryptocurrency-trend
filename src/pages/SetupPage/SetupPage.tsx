@@ -1,17 +1,27 @@
+import { useState } from "react";
+
 import {
   OneTyped,
   TypedField,
   FieldType,
   Breadcrumbs,
+  IBreadcrumbsOption,
 } from "react-declarative";
 
 import Preview from "./components/Preview";
 
 import IData from "./model/IData.model";
 
+import downloadFile from "../../utils/downloadFile";
+import uploadFile from "../../utils/uploadFile";
+import serializeConfig, { fromData } from "./utils/serializeConfig";
+import parseConfig from "./utils/parseConfig";
+
+import { netManager, trainManager } from "../../lib/schema";
+
 import { initialData } from "./config";
 
-import { useState } from "react";
+import history from "../../history";
 
 const createNeuronField = (index: number): TypedField => ({
   type: FieldType.Group,
@@ -211,9 +221,47 @@ const fields: TypedField<IData>[] = [
   },
 ];
 
+const actions: IBreadcrumbsOption[] = [
+    {
+        action: 'import-config',
+        label: 'Import config',
+    },
+];
+
 export const SetupPage = () => {
   
   const [data, setData] = useState<IData>(initialData);
+  const [changed, setChanged] = useState(false);
+
+  const handleSubmit = () => {
+    const config = fromData(data);
+    netManager.setValue(config.net);
+    trainManager.setValue(config.train);
+    if (changed) {
+        downloadFile(serializeConfig(data), `hypebot-${new Date().toISOString()}.json`);
+    }
+    history.push('/main-page');
+  };
+
+  const handleAction = (action: string) => {
+    if (action === "import-config") {
+        uploadFile().then((json) => {
+            const data = parseConfig(json);
+            const config = fromData(data);
+            netManager.setValue(config.net);
+            trainManager.setValue(config.train);
+            setChanged(false);
+            setData(data);
+        });
+    }
+  };
+
+  const handleChange = (data: IData, initial: boolean) => {
+    if (!initial) {
+        setChanged(true);
+    }
+    setData(data);
+  };
 
   return (
     <>
@@ -221,12 +269,14 @@ export const SetupPage = () => {
         withSave
         title="HypeNet"
         subtitle="SetupPage"
-        onSave={() => alert(JSON.stringify(data))}
+        actions={actions}
+        onSave={handleSubmit}
+        onAction={handleAction}
         saveDisabled={!data}
       />
       <OneTyped<IData>
         handler={data}
-        change={(data) => setData(data)}
+        change={handleChange}
         fields={fields}
       />
     </>

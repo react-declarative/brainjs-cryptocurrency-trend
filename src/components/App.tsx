@@ -11,6 +11,7 @@ export const App = () => (
   <Container>
     <CssBaseline />
     <Switch
+      animation='slideDown'
       Loader={Fragment}
       history={history}
       items={routes}

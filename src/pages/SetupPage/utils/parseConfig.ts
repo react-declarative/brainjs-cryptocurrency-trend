@@ -2,13 +2,13 @@ import IData from "../model/IData.model";
 
 export const toData = (data: Record<string, any>): IData => {
   const {
-    netConfig: {
+    net: {
       binaryThresh,
       activation,
       hiddenLayers,
       leakyReluAlpha,
     },
-    trainConfig: {
+    train: {
       iterations,
       errorThresh,
       log,
