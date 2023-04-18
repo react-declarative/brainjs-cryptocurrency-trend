@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 
+import { SnackbarProvider } from 'notistack';
 import { ThemeProvider } from '@mui/material/styles';
 import { CacheProvider } from "@emotion/react";
 import { TssCacheProvider } from "tss-react";
@@ -13,6 +14,8 @@ import history from './history';
 import App from "./components/App";
 
 import THEME_DARK from "./config/theme";
+
+const MAX_SNACK = 15;
 
 const container = document.getElementById('root')!;
 
@@ -39,7 +42,9 @@ const wrappedApp = (
     <CacheProvider value={muiCache}>
       <TssCacheProvider value={tssCache}> 
         <ThemeProvider theme={THEME_DARK}>
-          <App />
+          <SnackbarProvider maxSnack={MAX_SNACK}>
+            <App />
+          </SnackbarProvider>
         </ThemeProvider>
       </TssCacheProvider>
     </CacheProvider>

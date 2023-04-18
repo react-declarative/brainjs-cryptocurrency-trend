@@ -9,6 +9,8 @@ import Chart from "./Chart";
 
 import Box from "@mui/material/Box";
 
+import useInformer from "../../hooks/useInformer";
+
 const CARD_LABEL = "KUKOIN ticker:ETH-USDT HIGH candle 1M";
 
 const useStyles = makeStyles()((theme) => ({
@@ -27,6 +29,9 @@ const useStyles = makeStyles()((theme) => ({
 
 export const MainPage = () => {
   const { classes } = useStyles();
+
+  useInformer("train")
+
   return (
     <Box className={classes.root}>
       <Box className={classes.container}>

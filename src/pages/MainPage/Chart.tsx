@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from "react";
+import { datetime } from "react-declarative";
 
 import {
   createChart,
@@ -48,7 +49,11 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
   timeScale: {
     tickMarkFormatter: (time: number) => {
       const date = new Date(time);
-      return `${date.getSeconds()}.${date.getMilliseconds()}`;
+      let hour = date.getHours().toString();
+      let minute = date.getMinutes().toString();
+      hour = hour.length === 1 ? '0' + hour : hour;
+      minute = minute.length === 1 ? '0' + minute : minute;
+      return `${hour}:${minute}:${date.getSeconds()}.${date.getMilliseconds()}`;
     },
   },
   handleScroll: {
