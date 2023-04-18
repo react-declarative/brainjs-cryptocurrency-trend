@@ -17,7 +17,7 @@ export const initialData: IData = {
     leakyReluAlpha: '0.01',
   },
   train: {
-    iterations: '1000000000',
+    iterations: '500000',
     errorThresh: '0.005',
     log: true,
     logPeriod: '100',
