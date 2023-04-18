@@ -54,9 +54,9 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
       let hour = date.getHours().toString();
       let minute = date.getMinutes().toString();
       let second = date.getSeconds().toString();
-      hour = hour.length === 1 ? '0' + hour : hour;
-      minute = minute.length === 1 ? '0' + minute : minute;
-      second = second.length === 1 ? '0' + second : second;
+      hour = hour.length === 1 ? "0" + hour : hour;
+      minute = minute.length === 1 ? "0" + minute : minute;
+      second = second.length === 1 ? "0" + second : second;
       return `${hour}:${minute}:${second}.${date.getMilliseconds()}`;
     },
   },
@@ -73,7 +73,11 @@ const SERIES_OPTIONS: DeepPartial<LineStyleOptions & SeriesOptionsCommon> = {
   priceLineVisible: false,
 };
 
-export const Chart = ({ predictChanged: upperPredictChanged, height, width }: IChartProps) => {
+export const Chart = ({
+  predictChanged: upperPredictChanged,
+  height,
+  width,
+}: IChartProps) => {
   const elementRef = useRef<HTMLDivElement>(undefined as never);
 
   const predictChanged = useSubject(upperPredictChanged);
@@ -94,34 +98,42 @@ export const Chart = ({ predictChanged: upperPredictChanged, height, width }: IC
     let lastPrice: number = 0;
 
     const disconnectPriceEmitter = priceEmitter.connect((value) => {
-        lastPrice = value;
-        series.update({ value, time: Date.now() as UTCTimestamp });
-        // chart.timeScale().fitContent();
+      lastPrice = value;
+      series.update({ value, time: Date.now() as UTCTimestamp });
+      // chart.timeScale().fitContent();
     });
 
     const line = series.createPriceLine({
-        price: lastPrice,
-        color: 'transparent',
-        lineWidth: 3,
-        lineStyle: LineStyle.Solid,
-        axisLabelVisible: true,
-        title: '',
+      price: lastPrice,
+      color: "transparent",
+      lineWidth: 3,
+      lineStyle: LineStyle.Solid,
+      axisLabelVisible: true,
+      title: "",
     });
 
     predictChanged.subscribe((trend) => {
-        if (trend === "upward") {
-            line.applyOptions({
-                title: "Raise predict",
-                color: "#00a73e",
-                price: lastPrice,
-            });
-        } else if (trend === "downward") {
-            line.applyOptions({
-                title: "Fail predict",
-                color: "#e4000b",
-                price: lastPrice,
-            });
-        }
+      if (trend === "upward") {
+        line.applyOptions({
+          title: "Raise predict",
+          color: "#00a73e",
+          price: lastPrice,
+        });
+      }
+      if (trend === "downward") {
+        line.applyOptions({
+          title: "Fail predict",
+          color: "#e4000b",
+          price: lastPrice,
+        });
+      }
+      if (trend === "train") {
+        line.applyOptions({
+          title: "",
+          color: "transparent",
+          price: 0,
+        });
+      }
     });
 
     return () => {
