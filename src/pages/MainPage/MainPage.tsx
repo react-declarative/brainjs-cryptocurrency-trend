@@ -1,103 +1,41 @@
 import React from "react";
 
-import { FieldType, IField } from "react-declarative";
+import { AutoSizer } from "react-declarative";
 
 import { makeStyles } from "../../styles/makeStyles";
 
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
+import Card from "../../components/common/Card";
+import Chart from "./Chart";
+
 import Box from "@mui/material/Box";
+
+const CARD_LABEL = "KUKOIN ticker:ETH-USDT HIGH candle 1M";
 
 const useStyles = makeStyles()((theme) => ({
   root: {
-    height: "100%",
     width: "100%",
+    minHeight: "100vh",
     display: "flex",
     alignItems: "center",
-    flexDirection: "column",
-    gap: 15,
-    padding: 15,
+    justifyContent: "center",
   },
   container: {
-    minWidth: 375,
-    maxWidth: 375,
-    padding: 15,
+    height: "85vmin",
+    width: "100%",
   },
 }));
-
-const GROW_DESCRIPTION =
-  "Tomorrow the price of your coin will start to rise. It's time to get few coins";
-
-const FAIL_DESCRIPTION =
-  "Tomorrow the price of your coin will start to fall. It's time to dump it";
-
-const createDimension = (
-  key: string,
-  title: string,
-  desc: string,
-  Icon: React.ReactElement
-): IField => ({
-  type: FieldType.Paper,
-  fieldRightMargin: "0",
-  fieldBottomMargin: "1",
-  //isVisible: (data) => !!data[key],
-  style: {
-    overflow: "hidden",
-  },
-  fields: [
-    {
-      type: FieldType.Typography,
-      typoVariant: "body1",
-      placeholder: title.toUpperCase(),
-      fieldRightMargin: "0",
-      fieldBottomMargin: "0",
-    },
-    {
-      type: FieldType.Typography,
-      fieldRightMargin: "0",
-      fieldBottomMargin: "0",
-      typoVariant: "body2",
-      placeholder: desc,
-      style: {
-        minWidth: "260px",
-      },
-    },
-    {
-      type: FieldType.Typography,
-      fieldRightMargin: "0",
-      fieldBottomMargin: "0",
-      typoVariant: "subtitle2",
-      style: {
-        color: "gray",
-      },
-      placeholder: "Consensus threshold for neural network",
-    },
-    {
-      type: FieldType.Component,
-      fieldRightMargin: "0",
-      fieldBottomMargin: "0",
-      element: () => (
-        <Box display="flex" justifyContent="center">
-          {Icon}
-        </Box>
-      ),
-    },
-    {
-      type: FieldType.Progress,
-      name: key,
-    },
-  ],
-});
 
 export const MainPage = () => {
   const { classes } = useStyles();
   return (
     <Box className={classes.root}>
-      <Paper className={classes.container}>
-        <Stack direction="column" gap="15px">
-          <span>mainpage</span>
-        </Stack>
-      </Paper>
+      <Box className={classes.container}>
+        <Card label={CARD_LABEL}>
+          <AutoSizer>
+            {({ height, width }) => <Chart height={height} width={width} />}
+          </AutoSizer>
+        </Card>
+      </Box>
     </Box>
   );
 };
