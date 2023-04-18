@@ -1,1 +1,1 @@
-# ml-cryptocurrency-price-prediction
+# brainjs-cryptocurrency-trend
