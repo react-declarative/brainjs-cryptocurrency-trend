@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 
 import { AutoSizer } from "react-declarative";
 
@@ -10,6 +10,7 @@ import Chart from "./Chart";
 import Box from "@mui/material/Box";
 
 import useInformer from "../../hooks/useInformer";
+import netEmitter from "../../lib/source/netEmitter";
 
 const CARD_LABEL = "KUKOIN ticker:ETH-USDT HIGH candle 1M";
 
@@ -31,6 +32,10 @@ export const MainPage = () => {
   const { classes } = useStyles();
 
   useInformer("downward")
+
+  useEffect(() => netEmitter.once((net) => {
+    console.log(net);
+  }), []);
 
   return (
     <Box className={classes.root}>
