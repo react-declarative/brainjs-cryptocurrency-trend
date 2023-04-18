@@ -30,7 +30,7 @@ const useStyles = makeStyles()((theme) => ({
 export const MainPage = () => {
   const { classes } = useStyles();
 
-  useInformer("train")
+  useInformer("downward")
 
   return (
     <Box className={classes.root}>

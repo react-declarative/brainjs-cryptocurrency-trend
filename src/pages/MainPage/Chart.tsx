@@ -1,5 +1,4 @@
 import { useRef, useLayoutEffect } from "react";
-import { datetime } from "react-declarative";
 
 import {
   createChart,
@@ -7,6 +6,7 @@ import {
   LineStyleOptions,
   SeriesOptionsCommon,
   DeepPartial,
+  LineStyle,
   UTCTimestamp,
 } from "lightweight-charts";
 
@@ -51,9 +51,11 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
       const date = new Date(time);
       let hour = date.getHours().toString();
       let minute = date.getMinutes().toString();
+      let second = date.getSeconds().toString();
       hour = hour.length === 1 ? '0' + hour : hour;
       minute = minute.length === 1 ? '0' + minute : minute;
-      return `${hour}:${minute}:${date.getSeconds()}.${date.getMilliseconds()}`;
+      second = second.length === 1 ? '0' + second : second;
+      return `${hour}:${minute}:${second}.${date.getMilliseconds()}`;
     },
   },
   handleScroll: {
@@ -85,14 +87,45 @@ export const Chart = ({ height, width }: IChartProps) => {
       ...SERIES_OPTIONS,
     });
 
-    const disconnect = priceEmitter.connect((value) => {
+    let lastPrice: number = 0;
+
+    const disconnectPriceEmitter = priceEmitter.connect((value) => {
+        lastPrice = value;
         series.update({ value, time: Date.now() as UTCTimestamp });
         // chart.timeScale().fitContent();
     });
 
+    const line = series.createPriceLine({
+        price: lastPrice,
+        color: 'transparent',
+        lineWidth: 3,
+        lineStyle: LineStyle.Solid,
+        axisLabelVisible: true,
+        title: '',
+    });
+
+    /*
+    priceEmitter.once(() => {
+        const trend: string = "";
+        if (trend === "upward") {
+            line.applyOptions({
+                title: "Raise predict",
+                color: "#00a73e",
+                price: lastPrice,
+            });
+        } else if (trend === "downward") {
+            line.applyOptions({
+                title: "Fail predict",
+                color: "#e4000b",
+                price: lastPrice,
+            });
+        }
+    });
+    */
+
     return () => {
       chart.remove();
-      disconnect();
+      disconnectPriceEmitter();
     };
   }, [height, width]);
 

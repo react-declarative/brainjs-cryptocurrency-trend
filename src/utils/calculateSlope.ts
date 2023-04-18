@@ -2,6 +2,7 @@
  * @see https://stackoverflow.com/questions/6195335/linear-regression-in-javascript
  * @description if Slope variable is positive the chart is going upward
  * @description if Slope variable is negative the chart is going downward
+ * @description if Slope variable is infinite the chart is going inline
  */
 export const calculateSlope = (data: number[]) => {
 
@@ -14,7 +15,7 @@ export const calculateSlope = (data: number[]) => {
     });
 
     let Slope = 0;
-    // let Intercept = 0;
+    let Intercept = 0;
     let SX = 0;
     let SY = 0;
     let SXX = 0; 
@@ -31,7 +32,10 @@ export const calculateSlope = (data: number[]) => {
     }
     
     Slope = ((N * SXY) - (SX * SY)) / ((N * SXX) - (SX * SX));
-    // Intercept = (SY - (Slope * SX)) / N;
+    Intercept = (SY - (Slope * SX)) / N;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const GetYValue = (xValue: number) => Intercept + (Slope * xValue);
 
     return Number.isFinite(Slope) ? Math.sign(Slope) : 0;
 };
