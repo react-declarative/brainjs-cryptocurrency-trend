@@ -57,6 +57,8 @@ export const MainPage = () => {
             if (Math.abs(upward - downward) > CC_EMIT_THRESHOLD) {
               const result = upward > downward ? "upward" : "downward";
               setPredict(result);
+            } else {
+              setPredict(null);
             }
           }
         };
