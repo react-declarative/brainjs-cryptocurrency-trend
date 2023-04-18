@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from "react";
+import { TSubject, useSubject } from "react-declarative";
 
 import {
   createChart,
@@ -13,6 +14,7 @@ import {
 import priceEmitter from "../../lib/source/priceEmitter";
 
 interface IChartProps {
+  predictChanged: TSubject<"train" | "upward" | "downward" | null>;
   height: number;
   width: number;
 }
@@ -71,8 +73,10 @@ const SERIES_OPTIONS: DeepPartial<LineStyleOptions & SeriesOptionsCommon> = {
   priceLineVisible: false,
 };
 
-export const Chart = ({ height, width }: IChartProps) => {
+export const Chart = ({ predictChanged: upperPredictChanged, height, width }: IChartProps) => {
   const elementRef = useRef<HTMLDivElement>(undefined as never);
+
+  const predictChanged = useSubject(upperPredictChanged);
 
   useLayoutEffect(() => {
     const { current: chartElement } = elementRef;
@@ -104,9 +108,7 @@ export const Chart = ({ height, width }: IChartProps) => {
         title: '',
     });
 
-    /*
-    priceEmitter.once(() => {
-        const trend: string = "";
+    predictChanged.subscribe((trend) => {
         if (trend === "upward") {
             line.applyOptions({
                 title: "Raise predict",
@@ -121,13 +123,12 @@ export const Chart = ({ height, width }: IChartProps) => {
             });
         }
     });
-    */
 
     return () => {
       chart.remove();
       disconnectPriceEmitter();
     };
-  }, [height, width]);
+  }, [height, width, predictChanged]);
 
   return <div ref={elementRef} />;
 };

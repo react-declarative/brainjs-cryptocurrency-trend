@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { AutoSizer } from "react-declarative";
+import { AutoSizer, useChangeSubject } from "react-declarative";
 
 import { makeStyles } from "../../styles/makeStyles";
 
@@ -9,8 +9,12 @@ import Chart from "./Chart";
 
 import Box from "@mui/material/Box";
 
-import useInformer from "../../hooks/useInformer";
 import netEmitter from "../../lib/source/netEmitter";
+import netInputEmitter from "../../lib/source/netInputEmitter";
+
+import useInformer from "../../hooks/useInformer";
+
+import { CC_EMIT_THRESHOLD } from "../../config/params";
 
 const CARD_LABEL = "KUKOIN ticker:ETH-USDT HIGH candle 1M";
 
@@ -31,18 +35,49 @@ const useStyles = makeStyles()((theme) => ({
 export const MainPage = () => {
   const { classes } = useStyles();
 
-  useInformer("downward")
+  const [predict, setPredict] = useState<
+    "train" | "upward" | "downward" | null
+  >("train");
 
-  useEffect(() => netEmitter.once((net) => {
-    console.log(net);
-  }), []);
+  const predictChanged = useChangeSubject(predict);
+
+  useInformer(predict);
+
+  useEffect(() => {
+    console.log("Right now this app is collecting data of raise and fail patterns. Please wait for the following logs");
+  }, []);
+
+  useEffect(
+    () =>
+      netEmitter.once((net) => {
+        const process = async () => {
+          while (true) {
+            const netInput = await netInputEmitter.toPromise();
+            const [upward = 0, downward = 0] = Object.values(net.run(netInput));
+            if (Math.abs(upward - downward) > CC_EMIT_THRESHOLD) {
+              const result = upward > downward ? "upward" : "downward";
+              setPredict(result);
+            }
+          }
+        };
+        process();
+        setPredict(null);
+      }),
+    []
+  );
 
   return (
     <Box className={classes.root}>
       <Box className={classes.container}>
         <Card label={CARD_LABEL}>
           <AutoSizer>
-            {({ height, width }) => <Chart height={height} width={width} />}
+            {({ height, width }) => (
+              <Chart
+                predictChanged={predictChanged}
+                height={height}
+                width={width}
+              />
+            )}
           </AutoSizer>
         </Card>
       </Box>

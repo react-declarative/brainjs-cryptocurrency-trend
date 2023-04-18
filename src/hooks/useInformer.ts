@@ -5,7 +5,7 @@ export const useInformer = (type: "train" | "upward" | "downward" | null) => {
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
     useEffect(() => {
         if (type) {
-            const msg = type === "train" ? "Net is warming, please wait"
+            const msg = type === "train" ? "Net is warming, please wait. Open console for more info"
                 : type === "upward"
                 ? "Trend is upward"
                 : type === "downward"
