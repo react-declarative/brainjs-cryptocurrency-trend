@@ -23,6 +23,7 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE))
         .operator(Operator.strideTricks(CC_INPUT_SIZE))
+        .tap(() => console.log('catched raise pattern'))
 );
 
 const negativeSetEmitter = Source.multicast<number[][]>(() =>
@@ -37,6 +38,7 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE))
         .operator(Operator.strideTricks(CC_INPUT_SIZE))
+        .tap(() => console.log('catched fail pattern'))
 );
 
 export const netEmitter = Source.join([
