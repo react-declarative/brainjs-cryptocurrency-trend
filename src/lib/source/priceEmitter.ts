@@ -32,10 +32,12 @@ export const priceEmitter = Source.multicast(() => Source.create<number>((next) 
                 "response": true,
             }));
             intervalRef = Source.fromInterval(1_000).connect(() => {
-                ws.send(JSON.stringify({
-                    "id": Date.now(),
-                    "type": "ping",
-                }));
+                if (ws.readyState === ws.OPEN) {
+                    ws.send(JSON.stringify({
+                        "id": Date.now(),
+                        "type": "ping",
+                    }));
+                }
             });
         });
 
