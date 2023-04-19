@@ -3,17 +3,15 @@ import { NeuralNetworkGPU } from 'brain.js';
 
 import priceEmitter from './priceEmitter';
 
-import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE } from '../../config/params';
+import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST } from '../../config/params';
 
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
 import calculateSlope from '../../utils/calculateSlope';
 import { netManager, trainManager } from '../schema';
 
-const FIXED_ADJUST = 1_000;
-
 const positiveSetEmitter = Source.multicast<number[][]>(() =>
     priceEmitter
-        .map((value) => Math.floor(value * FIXED_ADJUST))
+        .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
         .operator(Operator.distinct())
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
         .filter((data) => calculateSlope(data) === 1)
@@ -28,7 +26,7 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
 
 const negativeSetEmitter = Source.multicast<number[][]>(() =>
     priceEmitter
-        .map((value) => Math.floor(value * FIXED_ADJUST))
+        .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
         .operator(Operator.distinct())
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
         .filter((data) => calculateSlope(data) === -1)
