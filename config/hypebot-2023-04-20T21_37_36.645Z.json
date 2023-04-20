@@ -3,22 +3,19 @@
     "inputSize": 10,
     "outputSize": 2,
     "binaryThresh": 0.5,
-    "activation": "relu",
+    "activation": "leaky-relu",
     "hiddenLayers": [
       8,
-      10,
-      8,
-      10,
-      8,
       6,
+      8,
       4
     ],
-    "leakyReluAlpha": 0.01
+    "leakyReluAlpha": 0.001
   },
   "train": {
     "timeout": 9999999999,
     "iterations": 120000,
-    "errorThresh": 0.005,
+    "errorThresh": 0.05,
     "log": true,
     "logPeriod": 100,
     "learningRate": 0.001,
