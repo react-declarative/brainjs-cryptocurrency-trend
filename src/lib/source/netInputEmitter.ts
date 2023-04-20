@@ -8,7 +8,7 @@ import { CC_INPUT_SIZE, CC_PRICE_SLOPE_ADJUST } from '../../config/params';
 
 const PAIRWISE_SIZE = CC_INPUT_SIZE + 1;
 
-export const netInputEmitter = Source.unicast(() => priceEmitter
+export const netInputEmitter = Source.multicast(() => priceEmitter
     .map((price) => price * CC_PRICE_SLOPE_ADJUST)
     .operator(Operator.distinct())
     .reduce<number[]>((acm, cur) => {
