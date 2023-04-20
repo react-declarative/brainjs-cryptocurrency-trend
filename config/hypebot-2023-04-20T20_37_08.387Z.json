@@ -1,0 +1,28 @@
+{
+  "net": {
+    "inputSize": 10,
+    "outputSize": 2,
+    "binaryThresh": 0.5,
+    "activation": "relu",
+    "hiddenLayers": [
+      8,
+      10,
+      8,
+      10,
+      8,
+      6,
+      4
+    ],
+    "leakyReluAlpha": 0.01
+  },
+  "train": {
+    "timeout": 9999999999,
+    "iterations": 120000,
+    "errorThresh": 0.005,
+    "log": true,
+    "logPeriod": 100,
+    "learningRate": 0.3,
+    "momentum": 0.1,
+    "callbackPeriod": 10
+  }
+}
