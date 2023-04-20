@@ -13,6 +13,8 @@ import {
 
 import priceEmitter from "../../lib/source/priceEmitter";
 
+import getTimeLabel from "../../utils/getTimeLabel";
+
 interface IChartProps {
   predictChanged: TSubject<"train" | "upward" | "downward" | null>;
   height: number;
@@ -51,13 +53,7 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
   timeScale: {
     tickMarkFormatter: (time: number) => {
       const date = new Date(time);
-      let hour = date.getHours().toString();
-      let minute = date.getMinutes().toString();
-      let second = date.getSeconds().toString();
-      hour = hour.length === 1 ? "0" + hour : hour;
-      minute = minute.length === 1 ? "0" + minute : minute;
-      second = second.length === 1 ? "0" + second : second;
-      return `${hour}:${minute}:${second}.${date.getMilliseconds()}`;
+      return getTimeLabel(date);
     },
   },
   handleScroll: {

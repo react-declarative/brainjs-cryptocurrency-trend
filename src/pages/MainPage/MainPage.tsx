@@ -14,9 +14,9 @@ import netInputEmitter from "../../lib/source/netInputEmitter";
 
 import useInformer from "../../hooks/useInformer";
 
-import { CC_EMIT_THRESHOLD } from "../../config/params";
+import { CC_NET_EMIT_THRESHOLD } from "../../config/params";
 
-const CARD_LABEL = "KUKOIN ticker:ETH-USDT HIGH candle 1M";
+const CARD_LABEL = "KUCOIN ticker:ETH-USDT HIGH candle 1M";
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -54,7 +54,7 @@ export const MainPage = () => {
           while (true) {
             const netInput = await netInputEmitter.toPromise();
             const [upward = 0, downward = 0] = Object.values(net.run(netInput));
-            if (Math.abs(upward - downward) > CC_EMIT_THRESHOLD) {
+            if (Math.abs(upward - downward) > CC_NET_EMIT_THRESHOLD) {
               const result = upward > downward ? "upward" : "downward";
               setPredict(result);
             } else {

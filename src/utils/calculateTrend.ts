@@ -4,7 +4,7 @@
  * @description if Slope variable is negative the chart is going downward
  * @description if Slope variable is infinite the chart is going inline
  */
-export const calculateSlope = (data: number[]) => {
+const makeSlope = (data: number[]) => {
 
     const X: number[] = [];
     const Y: number[] = [];
@@ -32,12 +32,20 @@ export const calculateSlope = (data: number[]) => {
     }
     
     Slope = ((N * SXY) - (SX * SY)) / ((N * SXX) - (SX * SX));
-    Intercept = (SY - (Slope * SX)) / N;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const GetYValue = (xValue: number) => Intercept + (Slope * xValue);
-
-    return Number.isFinite(Slope) ? Math.sign(Slope) : 0;
+    return {
+        sign: Number.isFinite(Slope) ? Math.sign(Slope) : 0,
+        getYValue: (xValue: number) => {
+            Intercept = Intercept || (SY - (Slope * SX)) / N;
+            return Intercept + (Slope * xValue);
+        },
+    };
 };
 
-export default calculateSlope;
+export const calculateTrend = (data: number[]) => {
+    const trendDirection = makeSlope(data).sign;
+    console.log(`last trend direction: ${trendDirection}`);
+    return trendDirection;
+};
+
+export default calculateTrend;
