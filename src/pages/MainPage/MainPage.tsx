@@ -56,19 +56,11 @@ export const MainPage = () => {
 
   const [net, setNet] = useState<INet | null>();
 
-  const [predict, setPredict] = useState<
-    "train" | "upward" | "downward" | null
-  >("train");
-
   useInformer(predictEmitter);
 
   useEffect(() => {
     console.log("Right now this app is collecting data of raise and fail patterns. Please wait for the following logs");
   }, []);
-
-  useEffect(() => {
-    predictEmitter.next(predict);
-  }, [predict]);
 
   useEffect(
     () =>
@@ -77,17 +69,17 @@ export const MainPage = () => {
           while (true) {
             const netInput = await netInputEmitter.toPromise();
             const [upward = 0, downward = 0] = Object.values(net.run(netInput));
-            if (Math.abs(upward - downward) > CC_NET_EMIT_THRESHOLD) {
+            if (upward > CC_NET_EMIT_THRESHOLD || downward > CC_NET_EMIT_THRESHOLD) {
               const result = upward > downward ? "upward" : "downward";
-              setPredict(result);
+              predictEmitter.next(result);
             } else {
-              setPredict(null);
+              predictEmitter.next(null);
             }
             await sleep(1_000);
           }
         };
         process();
-        setPredict(null);
+        predictEmitter.next(null);
         setNet(net as unknown as INet);
       }),
     []
