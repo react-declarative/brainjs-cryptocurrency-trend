@@ -15,6 +15,7 @@ import downloadFile from "../../utils/downloadFile";
 
 import netEmitter from "../../lib/source/netEmitter";
 import netInputEmitter from "../../lib/source/netInputEmitter";
+import { predictEmitter } from "./emitters";
 
 import useInformer from "../../hooks/useInformer";
 
@@ -59,13 +60,15 @@ export const MainPage = () => {
     "train" | "upward" | "downward" | null
   >("train");
 
-  const predictChanged = useChangeSubject(predict);
-
-  useInformer(predict);
+  useInformer(predictEmitter);
 
   useEffect(() => {
     console.log("Right now this app is collecting data of raise and fail patterns. Please wait for the following logs");
   }, []);
+
+  useEffect(() => {
+    predictEmitter.next(predict);
+  }, [predict]);
 
   useEffect(
     () =>
@@ -112,7 +115,7 @@ export const MainPage = () => {
           <AutoSizer>
             {({ height, width }) => (
               <Chart
-                predictChanged={predictChanged}
+                predictEmitter={predictEmitter}
                 height={height}
                 width={width}
               />

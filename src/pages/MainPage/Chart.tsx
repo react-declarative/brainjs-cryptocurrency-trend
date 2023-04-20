@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from "react";
+
 import { TSubject, useSubject } from "react-declarative";
 
 import {
@@ -16,7 +17,7 @@ import priceEmitter from "../../lib/source/priceEmitter";
 import getTimeLabel from "../../utils/getTimeLabel";
 
 interface IChartProps {
-  predictChanged: TSubject<"train" | "upward" | "downward" | null>;
+  predictEmitter: TSubject<"train" | "upward" | "downward" | null>;
   height: number;
   width: number;
 }
@@ -70,18 +71,16 @@ const SERIES_OPTIONS: DeepPartial<LineStyleOptions & SeriesOptionsCommon> = {
 };
 
 export const Chart = ({
-  predictChanged: upperPredictChanged,
+  predictEmitter,
   height,
   width,
 }: IChartProps) => {
   const elementRef = useRef<HTMLDivElement>(undefined as never);
 
-  const predictChanged = useSubject(upperPredictChanged);
+  const predictChanged = useSubject(predictEmitter);
 
   useLayoutEffect(() => {
     const { current: chartElement } = elementRef;
-
-    predictChanged.unsubscribeAll();
 
     const chart = createChart(chartElement, {
       ...CHART_OPTIONS,
@@ -110,17 +109,18 @@ export const Chart = ({
       title: "",
     });
 
-    predictChanged.subscribe((trend) => {
+    const disconnectPredictEmitter = predictChanged.subscribe((trend) => {
+      const date = new Date();
       if (trend === "upward") {
         line.applyOptions({
-          title: "Raise predict",
+          title: `Raise predict ${getTimeLabel(date)}`,
           color: "#00a73e",
           price: lastPrice,
         });
       }
       if (trend === "downward") {
         line.applyOptions({
-          title: "Fail predict",
+          title: `Fail predict ${getTimeLabel(date)}`,
           color: "#e4000b",
           price: lastPrice,
         });
@@ -137,6 +137,7 @@ export const Chart = ({
     return () => {
       chart.remove();
       disconnectPriceEmitter();
+      disconnectPredictEmitter();
     };
   }, [height, width, predictChanged]);
 

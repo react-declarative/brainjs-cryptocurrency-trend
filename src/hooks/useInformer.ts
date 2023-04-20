@@ -1,8 +1,15 @@
-import { useSnackbar } from 'notistack';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-export const useInformer = (type: "train" | "upward" | "downward" | null) => {
+import { useSnackbar } from 'notistack';
+import { TSubject } from 'react-declarative';
+
+export const useInformer = (source: TSubject<"train" | "upward" | "downward" | null>) => {
+    const [type, setType] = useState<"train" | "upward" | "downward" | null>("train");
+
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+    useEffect(() => source.subscribe((type) => setType(type)), [source]);
+
     useEffect(() => {
         if (type) {
             const msg = type === "train" ? "Net is warming, please wait. Open console for more info"
