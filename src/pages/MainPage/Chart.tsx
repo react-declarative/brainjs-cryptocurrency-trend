@@ -81,6 +81,8 @@ export const Chart = ({
   useLayoutEffect(() => {
     const { current: chartElement } = elementRef;
 
+    predictChanged.unsubscribeAll();
+
     const chart = createChart(chartElement, {
       ...CHART_OPTIONS,
       height,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { AutoSizer, useChangeSubject } from "react-declarative";
+import { AutoSizer, useChangeSubject, sleep } from "react-declarative";
 
 import { makeStyles } from "../../styles/makeStyles";
 
@@ -60,6 +60,7 @@ export const MainPage = () => {
             } else {
               setPredict(null);
             }
+            await sleep(1_000);
           }
         };
         process();
