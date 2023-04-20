@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { AutoSizer, useChangeSubject, sleep } from "react-declarative";
+import { AutoSizer, useChangeSubject, sleep, Breadcrumbs } from "react-declarative";
+
+import { NeuralNetwork } from "brain.js";
 
 import { makeStyles } from "../../styles/makeStyles";
 
@@ -8,6 +10,8 @@ import Card from "../../components/common/Card";
 import Chart from "./Chart";
 
 import Box from "@mui/material/Box";
+
+import downloadFile from "../../utils/downloadFile";
 
 import netEmitter from "../../lib/source/netEmitter";
 import netInputEmitter from "../../lib/source/netInputEmitter";
@@ -23,17 +27,33 @@ const useStyles = makeStyles()((theme) => ({
     width: "100%",
     minHeight: "100vh",
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "stretch",
+    justifyContent: "stretch",
+    flexDirection: "column",
   },
   container: {
-    height: "85vmin",
+    height: "calc(100vh - 80px)",
     width: "100%",
+  },
+  adjust: {
+    flex: 1,
   },
 }));
 
+interface INet extends NeuralNetwork<any, any> {}
+
+const options = [
+  {
+    action: "export-net",
+    isDisabled: (net: INet | null) => !net,
+    label: "Export to JS",
+  },
+];
+
 export const MainPage = () => {
   const { classes } = useStyles();
+
+  const [net, setNet] = useState<INet | null>();
 
   const [predict, setPredict] = useState<
     "train" | "upward" | "downward" | null
@@ -65,12 +85,28 @@ export const MainPage = () => {
         };
         process();
         setPredict(null);
+        setNet(net as unknown as INet);
       }),
     []
   );
 
+  const handleAction = (action: string) => {
+    if (action === "export-net") {
+      const func = NeuralNetwork.prototype.toFunction;
+      const code = func.apply(net).toString();
+      downloadFile(code, `hypebot-net-${new Date().toISOString()}.json`);
+    }
+  };
+
   return (
     <Box className={classes.root}>
+      <Breadcrumbs
+        title="HypeNet"
+        subtitle="TradePage"
+        actions={options}
+        payload={net}
+        onAction={handleAction}
+      />
       <Box className={classes.container}>
         <Card label={CARD_LABEL}>
           <AutoSizer>
@@ -84,6 +120,7 @@ export const MainPage = () => {
           </AutoSizer>
         </Card>
       </Box>
+      <div className={classes.adjust} />
     </Box>
   );
 };
