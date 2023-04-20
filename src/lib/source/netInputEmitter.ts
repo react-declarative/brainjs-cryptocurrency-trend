@@ -23,6 +23,7 @@ export const netInputEmitter = Source.unicast(() => priceEmitter
     .operator(Operator.pair())
     .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
     .operator(Operator.group(CC_INPUT_SIZE))
+    .share()
 );
 
 // (window as any).netInputEmitter = netInputEmitter

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { AutoSizer, sleep, Breadcrumbs } from "react-declarative";
 
@@ -63,6 +63,15 @@ export const MainPage = () => {
 
   const [net, setNet] = useState<INet | null>();
 
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   useInformer(predictEmitter);
 
   useEffect(() => {
@@ -73,7 +82,7 @@ export const MainPage = () => {
     () =>
       netEmitter.once((net) => {
         const process = async () => {
-          while (true) {
+          while (isMounted.current) {
             const netInput = await netInputEmitter.toPromise();
             const [upward = 0, downward = 0] = Object.values(net.run(netInput));
             console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`)
