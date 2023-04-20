@@ -50,7 +50,9 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
 export const netEmitter = Source.join([
     positiveSetEmitter,
     negativeSetEmitter,
-]).mapAsync(async ([positiveSet, negativeSet]) => {
+], {
+    race: true,
+}).mapAsync(async ([positiveSet, negativeSet]) => {
     const net = new NeuralNetworkGPU({
         ...netManager.getValue()!,
     });
