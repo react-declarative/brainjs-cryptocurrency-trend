@@ -21,7 +21,7 @@
     "errorThresh": 0.005,
     "log": true,
     "logPeriod": 100,
-    "learningRate": 0.3,
+    "learningRate": 0.001,
     "momentum": 0.1,
     "callbackPeriod": 10
   }
