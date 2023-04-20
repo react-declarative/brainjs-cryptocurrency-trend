@@ -17,7 +17,6 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.distinct())
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
         .filter((data) => calculateTrend(data) === 1)
-        .operator(Operator.take(1))
         .flatMap((items) => items)
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
@@ -35,7 +34,6 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.distinct())
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
         .filter((data) => calculateTrend(data) === -1)
-        .operator(Operator.take(1))
         .flatMap((items) => items)
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
@@ -47,27 +45,30 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         })
 );
 
-export const netEmitter = Source.join([
-    positiveSetEmitter,
-    negativeSetEmitter,
-], {
-    race: true,
-}).mapAsync(async ([positiveSet, negativeSet]) => {
-    const net = new NeuralNetworkGPU({
-        ...netManager.getValue()!,
+export const netEmitter = Source
+    .join([
+        positiveSetEmitter,
+        negativeSetEmitter,
+    ], {
+        race: true,
+    })
+    .operator<[number[][], number[][]]>(Operator.take(1))
+    .mapAsync(async ([positiveSet, negativeSet]) => {
+        const net = new NeuralNetworkGPU({
+            ...netManager.getValue()!,
+        });
+        const data = [
+            ...positiveSet.map((input) => ({
+                input,
+                output: [1, 0],
+            })),
+            ...negativeSet.map((input) => ({
+                input,
+                output: [0, 1],
+            })),
+        ];
+        await net.trainAsync(data, trainManager.getValue()!);
+        return net;
     });
-    const data = [
-        ...positiveSet.map((input) => ({
-            input,
-            output: [1, 0],
-        })),
-        ...negativeSet.map((input) => ({
-            input,
-            output: [0, 1],
-        })),
-    ];
-    await net.trainAsync(data, trainManager.getValue()!);
-    return net;
-});
 
 export default netEmitter;
