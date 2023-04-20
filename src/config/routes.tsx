@@ -4,10 +4,17 @@ import ErrorPage from "../pages/ErrorPage/ErrorPage";
 import SetupPage from "../pages/SetupPage/SetupPage";
 import MainPage from "../pages/MainPage/MainPage";
 
+import { netManager, trainManager } from "../lib/schema";
+
 export const routes: ISwitchItem[] = [
   {
     path: "/",
-    redirect: "/setup-page",
+    redirect: () => {
+      if (netManager.getValue() && trainManager.getValue()) {
+        return "/main-page";
+      }
+      return "/setup-page";
+    }
   },
   {
     path: "/setup-page",

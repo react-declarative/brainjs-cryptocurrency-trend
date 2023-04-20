@@ -22,6 +22,8 @@ import useInformer from "../../hooks/useInformer";
 
 import { CC_NET_EMIT_THRESHOLD } from "../../config/params";
 
+import history from "../../history";
+
 const CARD_LABEL = "KUCOIN ticker:ETH-USDT HIGH candle 1M";
 
 const useStyles = makeStyles()((theme) => ({
@@ -45,6 +47,10 @@ const useStyles = makeStyles()((theme) => ({
 interface INet extends NeuralNetwork<any, any> {}
 
 const options = [
+  {
+    action: "history-back",
+    label: "Go back to net edit",
+  },
   {
     action: "export-net",
     isDisabled: (net: INet | null) => !net,
@@ -92,6 +98,9 @@ export const MainPage = () => {
       const func = NeuralNetwork.prototype.toFunction;
       const code = func.apply(net).toString();
       downloadFile(code, `hypebot-net-${new Date().toISOString()}.json`);
+    }
+    if (action === "history-back") {
+      history.push("/setup-page");
     }
   };
 
