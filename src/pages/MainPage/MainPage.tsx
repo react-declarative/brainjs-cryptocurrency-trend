@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { AutoSizer, useChangeSubject, sleep, Breadcrumbs } from "react-declarative";
+import { AutoSizer, sleep, Breadcrumbs } from "react-declarative";
 
 import { NeuralNetwork } from "brain.js";
 
@@ -12,6 +12,7 @@ import Chart from "./Chart";
 import Box from "@mui/material/Box";
 
 import downloadFile from "../../utils/downloadFile";
+import getTimeLabel from "../../utils/getTimeLabel";
 
 import netEmitter from "../../lib/source/netEmitter";
 import netInputEmitter from "../../lib/source/netInputEmitter";
@@ -69,6 +70,7 @@ export const MainPage = () => {
           while (true) {
             const netInput = await netInputEmitter.toPromise();
             const [upward = 0, downward = 0] = Object.values(net.run(netInput));
+            console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`)
             if (upward > CC_NET_EMIT_THRESHOLD || downward > CC_NET_EMIT_THRESHOLD) {
               const result = upward > downward ? "upward" : "downward";
               predictEmitter.next(result);
