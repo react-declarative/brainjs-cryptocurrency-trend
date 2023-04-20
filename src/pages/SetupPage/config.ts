@@ -6,7 +6,7 @@ export const initialData: IData = {
     hiddenLayers: {
       0: '8',
       1: '4',
-      2: '2',
+      2: '0',
       3: '0',
       4: '0',
       5: '0',
@@ -17,7 +17,7 @@ export const initialData: IData = {
     leakyReluAlpha: '0.01',
   },
   train: {
-    iterations: '50000',
+    iterations: '120000',
     errorThresh: '0.005',
     log: true,
     logPeriod: '100',
