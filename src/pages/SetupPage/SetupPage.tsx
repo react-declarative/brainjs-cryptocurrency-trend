@@ -15,7 +15,7 @@ import IData from "./model/IData.model";
 import downloadFile from "../../utils/downloadFile";
 import uploadFile from "../../utils/uploadFile";
 import serializeConfig, { fromData } from "./utils/serializeConfig";
-import parseConfig from "./utils/parseConfig";
+import parseConfig, { toData } from "./utils/parseConfig";
 
 import { netManager, trainManager } from "../../lib/schema";
 
@@ -228,9 +228,18 @@ const actions: IBreadcrumbsOption[] = [
     },
 ];
 
+const getInitialData = () => {
+  const net = netManager.getValue();
+  const train = trainManager.getValue();
+  if (net && train) {
+    return toData({ net, train });
+  }
+  return initialData;
+}
+
 export const SetupPage = () => {
   
-  const [data, setData] = useState<IData>(initialData);
+  const [data, setData] = useState<IData>(getInitialData());
   const [changed, setChanged] = useState(false);
 
   const handleSubmit = () => {
