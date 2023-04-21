@@ -7,7 +7,7 @@ import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST } from '../.
 
 import getTimeLabel from '../../utils/getTimeLabel';
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
-import calculateTrend from '../../utils/calculateTrend';
+import calculateTrend, { checkForBullRun } from '../../utils/calculateTrend';
 
 import { netManager, trainManager } from '../schema';
 
@@ -26,6 +26,11 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
             const date = new Date();
             console.log(`catched raise pattern at ${getTimeLabel(date)}`);
         })
+        .filter((strides: number[][]) => {
+            const isOk = checkForBullRun(strides, 1);
+            !isOk && console.log(`raise pattern is not bull run ${getTimeLabel(new Date())}`);
+            return isOk;
+        })
 );
 
 const negativeSetEmitter = Source.multicast<number[][]>(() =>
@@ -42,6 +47,11 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .tap(() => {
             const date = new Date();
             console.log(`catched fail pattern at ${getTimeLabel(date)}`);
+        })
+        .filter((strides: number[][]) => {
+            const isOk = checkForBullRun(strides, -1);
+            !isOk && console.log(`fail pattern is not bull run ${getTimeLabel(new Date())}`);
+            return isOk;
         })
 );
 
