@@ -1,5 +1,7 @@
 import { Source, compose, fetchApi } from 'react-declarative';
 
+import history from '../../history';
+
 export const priceEmitter = Source.multicast(() => Source.create<number>((next) => {
 
     let disposeRef: Function = () => undefined;
@@ -37,6 +39,9 @@ export const priceEmitter = Source.multicast(() => Source.create<number>((next) 
                         "id": Date.now(),
                         "type": "ping",
                     }));
+                } else if (ws.readyState === ws.CLOSED) {
+                    intervalRef();
+                    history.push("/error-page");
                 }
             });
         });
