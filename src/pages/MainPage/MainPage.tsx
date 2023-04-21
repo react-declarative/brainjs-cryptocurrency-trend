@@ -87,6 +87,7 @@ export const MainPage = () => {
       netEmitter.once((net) => {
         const process = async () => {
           let [prevUpward, prevDownward] = await getPrediction(net);
+          await sleep(10_000);
           while (isMounted.current) {
             const [upward, downward] = await getPrediction(net);
             console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`);
