@@ -28,9 +28,10 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
         })
         .map((strides: number[][]) => filterBullRun(strides, 1))
         .filter((strides) => {
+            console.log(`chunk_size=${strides.length} required_size=${CC_TRAIN_TARGET_SIZE}`);
             if (strides.length < CC_TRAIN_TARGET_SIZE) {
                 console.log(`raise pattern is not bull run ${getTimeLabel(new Date())}`);
-                return false
+                return false;
             }
             return true;
         })
@@ -57,9 +58,10 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         })
         .map((strides: number[][]) => filterBullRun(strides, -1))
         .filter((strides) => {
+            console.log(`chunk_size=${strides.length} required_size=${CC_TRAIN_TARGET_SIZE}`);
             if (strides.length < CC_TRAIN_TARGET_SIZE) {
-                console.log(`fail pattern is not bull run chunk_size=${strides.length} required_size=${CC_TRAIN_TARGET_SIZE} ${getTimeLabel(new Date())}`);
-                return false
+                console.log(`fail pattern is not bull run ${getTimeLabel(new Date())}`);
+                return false;
             }
             return true;
         })
