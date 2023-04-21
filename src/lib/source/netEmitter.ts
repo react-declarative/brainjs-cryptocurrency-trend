@@ -24,7 +24,7 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.strideTricks(CC_INPUT_SIZE))
         .tap(() => {
             const date = new Date();
-            console.log(`catched raise pattern at ${getTimeLabel(date)}`);
+            console.log(`checking raise pattern at ${getTimeLabel(date)}`);
         })
         .map((strides: number[][]) => filterBullRun(strides, 1))
         .filter((strides) => {
@@ -33,6 +33,10 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
                 return false
             }
             return true;
+        })
+        .tap(() => {
+            const date = new Date();
+            console.log(`catched raise pattern at ${getTimeLabel(date)}`);
         })
 );
 
@@ -49,7 +53,7 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.strideTricks(CC_INPUT_SIZE))
         .tap(() => {
             const date = new Date();
-            console.log(`catched fail pattern at ${getTimeLabel(date)}`);
+            console.log(`checking fail pattern at ${getTimeLabel(date)}`);
         })
         .map((strides: number[][]) => filterBullRun(strides, -1))
         .filter((strides) => {
@@ -58,6 +62,10 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
                 return false
             }
             return true;
+        })
+        .tap(() => {
+            const date = new Date();
+            console.log(`catched fail pattern at ${getTimeLabel(date)}`);
         })
 );
 

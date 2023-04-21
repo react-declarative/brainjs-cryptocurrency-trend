@@ -51,7 +51,8 @@ export const calculateTrend = (data: number[]) => {
 export const filterBullRun = (strides: number[][], trend: 1 | -1) => {
     return strides.filter((stride) => {
         const { sign } = makeSlope(stride.map((value) => value * 100));
-        return sign === 0 || sign === trend;
+        console.log(`trend sign=${sign}`)
+        return sign === trend;
     });
 };
 
