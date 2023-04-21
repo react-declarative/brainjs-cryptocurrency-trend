@@ -35,7 +35,7 @@ npm start
 
 **3. Configure the neural network. If you can't just press save button, default config is good enough**
 
-**4. Wait for whales patterns interception. Open Chrome Dev Tools for detailed log**
+**4. Wait for whales patterns interception (will take around 10 minutes or more). Open Chrome Dev Tools for detailed log**
 
 **5. Enjoy! Search for `TODO: implement` in this app to find a part for order creation integration**
 
