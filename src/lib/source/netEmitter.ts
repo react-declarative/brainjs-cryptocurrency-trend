@@ -54,7 +54,7 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .map((strides: number[][]) => filterBullRun(strides, -1))
         .filter((strides) => {
             if (strides.length < CC_TRAIN_TARGET_SIZE) {
-                console.log(`fail pattern is not bull run ${getTimeLabel(new Date())}`);
+                console.log(`fail pattern is not bull run chunk_size=${strides.length} required_size=${CC_TRAIN_TARGET_SIZE} ${getTimeLabel(new Date())}`);
                 return false
             }
             return true;
