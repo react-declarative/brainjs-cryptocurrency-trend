@@ -5,8 +5,8 @@ export const initialData: IData = {
     binaryThresh: '0.5',
     hiddenLayers: {
       0: '8',
-      1: '4',
-      2: '0',
+      1: '6',
+      2: '4',
       3: '0',
       4: '0',
       5: '0',
@@ -14,7 +14,7 @@ export const initialData: IData = {
       7: '0',
     },
     activation: 'leaky-relu',
-    leakyReluAlpha: '0.0001',
+    leakyReluAlpha: '0.001',
   },
   train: {
     iterations: '50000',
