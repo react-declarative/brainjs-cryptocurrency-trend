@@ -49,7 +49,7 @@ To do that It listening the exchange `1M` candle websocket until It finds a spik
 
 ![candlechart2](./docs/candlechart2.png)
 
-The sign of Slope variable means the trend: negative (`red rect`) if price is going downward or positive (`green rect`) if price is going forward. So when the bot see the pair of groups with trend `[-1, 1]` or `[1, -1]`
+The sign of Slope variable means the trend: negative (`red rect`) if price is going downward or positive (`green rect`) if price is going forward. So when the bot see the pair of groups with trend `[-1, 1]` or `[1, -1]` it capture them and start training neural network
 
 ![net](./docs/net.png)
 
