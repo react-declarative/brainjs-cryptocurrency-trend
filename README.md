@@ -53,7 +53,7 @@ The sign of Slope variable means the trend: negative (`red rect`) if price is go
 
 ![net](./docs/net.png)
 
-The neural net takes only the last 10 prices from a market as an input and 2 values as an output. If the price rises, it will return `[1, 0]`. If the price will fail it returns `[0, 1]`
+The neural net takes only the last 10 prices from a market as an input and 2 values as an output. If the price rises, it  return `[1, 0]`. If the price will fall it return `[0, 1]`
 
 ![stride](./docs/stride.png)
 
