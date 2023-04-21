@@ -61,4 +61,4 @@ To use a group with 100 price records as a set for training I am using [stride t
 
 ![bucks](./docs/bucks.png)
 
-FYN If you have your own DAU which have more than `10 000$` for trading feel free to contact me, I got a lot of solutions of that kind for crypto currencies
+FYN If you have your own DAU which owns more than `10 000$` for trading feel free to contact me, I got a lot of solutions of that kind for crypto currencies
