@@ -1,6 +1,6 @@
 import { useRef, useLayoutEffect } from "react";
 
-import { TSubject, useSubject } from "react-declarative";
+import { TSubject, useSubject, useReloadTrigger } from "react-declarative";
 
 import {
   createChart,
@@ -78,6 +78,7 @@ export const Chart = ({
   const elementRef = useRef<HTMLDivElement>(undefined as never);
 
   const predictChanged = useSubject(predictEmitter);
+  const { reloadTrigger } = useReloadTrigger(600_000);
 
   useLayoutEffect(() => {
     const { current: chartElement } = elementRef;
@@ -139,7 +140,7 @@ export const Chart = ({
       disconnectPriceEmitter();
       disconnectPredictEmitter();
     };
-  }, [height, width, predictChanged]);
+  }, [height, width, predictChanged, reloadTrigger]);
 
   return <div ref={elementRef} />;
 };
