@@ -79,7 +79,7 @@ export const netEmitter = Source
         race: true,
     })
     .operator<[number[][], number[][]]>(Operator.take(1))
-    .tap(() => console.log(`starting trainment ${getTimeLabel(new Date())}`))
+    .tap(([positiveSet, negativeSet]) => console.log(`starting trainment ${getTimeLabel(new Date())}`, { positiveSet, negativeSet }))
     .mapAsync(async ([positiveSet, negativeSet]) => {
         const net = new NeuralNetworkGPU({
             ...netManager.getValue()!,
