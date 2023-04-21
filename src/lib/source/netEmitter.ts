@@ -94,8 +94,8 @@ export const netEmitter = Source
                 output: [0, 1],
             })),
         ];
-        await net.trainAsync(data, trainManager.getValue()!);
-        return net;
+        const status = await net.trainAsync(data, trainManager.getValue()!);
+        return { net, status };
     });
 
 export default netEmitter;

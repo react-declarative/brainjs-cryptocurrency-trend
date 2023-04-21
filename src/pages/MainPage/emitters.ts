@@ -1,7 +1,7 @@
 import { Subject, fetchApi } from "react-declarative";
 import getTimeLabel from "../../utils/getTimeLabel";
 
-export const predictEmitter = new Subject<"train" | "upward" | "downward" | null>();
+export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
 /**
  * TODO: implement

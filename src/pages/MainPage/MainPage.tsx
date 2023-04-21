@@ -20,6 +20,8 @@ import { predictEmitter } from "./emitters";
 
 import useInformer from "../../hooks/useInformer";
 
+import { CC_MAX_TRAIN_ERROR } from "../../config/params";
+
 import history from "../../history";
 
 const CARD_LABEL = "KUCOIN ticker:ETH-USDT HIGH candle 1M";
@@ -84,20 +86,28 @@ export const MainPage = () => {
 
   useEffect(
     () =>
-      netEmitter.once((net) => {
+      netEmitter.once(({ net, status }) => {
+
+        if (status.error > CC_MAX_TRAIN_ERROR) {
+          return;
+        } 
+
         const process = async () => {
           let [prevUpward, prevDownward] = await getPrediction(net);
           await sleep(10_000);
           while (isMounted.current) {
             const [upward, downward] = await getPrediction(net);
             console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`);
-            const result = upward > prevUpward ? "upward" : downward > prevDownward ? "downward" : null;
+            const dUpward = Math.max(upward - prevUpward, 0);
+            const dDownward = Math.max(downward - prevDownward, 0);
+            const result = dUpward > dDownward ? "upward" : "downward";
             predictEmitter.next(result);
             prevUpward = upward;
             prevDownward = downward;
             await sleep(10_000);
           }
         };
+
         process();
         predictEmitter.next(null);
         setNet(net as unknown as INet);

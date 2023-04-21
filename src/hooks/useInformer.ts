@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { Subject, Operator } from 'react-declarative';
 
-export const useInformer = (source: Subject<"train" | "upward" | "downward" | null>) => {
+export const useInformer = (source: Subject<"train" | "upward" | "downward" | "untrained" | null>) => {
     const [type, setType] = useState<"train" | "upward" | "downward" | null>("train");
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -17,13 +17,17 @@ export const useInformer = (source: Subject<"train" | "upward" | "downward" | nu
                 ? "Trend is upward"
                 : type === "downward"
                 ? "Trend is downward"
+                : type === "untrained"
+                ? "Train error is to high, please retrain"
                 : "Unknown";
             const variant = type === "train" ? "warning"
                 : type === "upward"
                 ? "success"
                 : type === "downward"
                 ? "error"
-                : "info";
+                : type === "untrained"
+                ? "info"
+                : "info"
             const key = enqueueSnackbar(msg, {
                 variant,
                 persist: true,
