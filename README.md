@@ -57,7 +57,7 @@ The neural net takes only the last 10 prices from a market as an input and 2 val
 
 ![stride](./docs/stride.png)
 
-To use a group with 100 price records as a set for training I am using [stride tricks](https://developers.google.com/machine-learning/practica/image-classification/convolutional-neural-networks). That helps me emulate receiving last 10 values from a websocket as It works in real time. But as I am already known the trend, the training of neural network is easy peasy (check `green`, `violet`, `yellow`, `green` rects)
+To use a group with 100 price records as a set for training I am using [stride tricks](https://developers.google.com/machine-learning/practica/image-classification/convolutional-neural-networks). That helps me emulate receiving last 10 values from a websocket just like in real time. But as I am already known the trend, the training of neural network is easy peasy (check `green`, `violet`, `yellow`, `green` rects)
 
 ![bucks](./docs/bucks.png)
 
