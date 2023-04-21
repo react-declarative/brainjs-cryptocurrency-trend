@@ -89,6 +89,7 @@ export const MainPage = () => {
       netEmitter.once(({ net, status }) => {
 
         if (status.error > CC_MAX_TRAIN_ERROR) {
+          predictEmitter.next("untrained");
           return;
         } 
 
