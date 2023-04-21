@@ -20,8 +20,6 @@ import { predictEmitter } from "./emitters";
 
 import useInformer from "../../hooks/useInformer";
 
-import { CC_NET_EMIT_THRESHOLD } from "../../config/params";
-
 import history from "../../history";
 
 const CARD_LABEL = "KUCOIN ticker:ETH-USDT HIGH candle 1M";
@@ -86,13 +84,9 @@ export const MainPage = () => {
             const netInput = await netInputEmitter.toPromise();
             const [upward = 0, downward = 0] = Object.values(net.run(netInput));
             console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`)
-            if (upward > CC_NET_EMIT_THRESHOLD || downward > CC_NET_EMIT_THRESHOLD) {
-              const result = upward > downward ? "upward" : "downward";
-              predictEmitter.next(result);
-            } else {
-              predictEmitter.next(null);
-            }
-            await sleep(1_000);
+            const result = upward > downward ? "upward" : "downward";
+            predictEmitter.next(result);
+            await sleep(30_000);
           }
         };
         process();

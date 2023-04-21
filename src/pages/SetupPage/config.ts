@@ -13,7 +13,7 @@ export const initialData: IData = {
       6: '0',
       7: '0',
     },
-    activation: 'sigmoid',
+    activation: 'leaky-relu',
     leakyReluAlpha: '0.0001',
   },
   train: {
