@@ -21,6 +21,10 @@ const doTrade = async (sellPercent: number, usdtAmount: number) => {
     }
 }
 
-predictEmitter.subscribe(() => doTrade(0.01, 100));
+predictEmitter.subscribe((trend) => {
+    if (trend === "upward") {
+        doTrade(0.01, 100);
+    }
+});
 
 (window as any).predictEmitter = predictEmitter;

@@ -31,7 +31,7 @@ export const priceEmitter = Source.multicast(() => Source.create<number>((next) 
                 "type": "subscribe",
                 "topic": "/market/ticker:ETH-USDT",
                 "privateChannel": false,
-                "response": true,
+                "response": false,
             }));
             intervalRef = Source.fromInterval(1_000).connect(() => {
                 if (ws.readyState === ws.OPEN) {

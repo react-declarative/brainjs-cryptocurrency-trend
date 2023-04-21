@@ -3,7 +3,7 @@ import { NeuralNetworkGPU } from 'brain.js';
 
 import priceEmitter from './priceEmitter';
 
-import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TARGET_SIZE } from '../../config/params';
+import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TARGET_SIZE, CC_STRIDE_STEP } from '../../config/params';
 
 import getTimeLabel from '../../utils/getTimeLabel';
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
@@ -21,7 +21,7 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE))
-        .operator(Operator.strideTricks(CC_INPUT_SIZE))
+        .operator(Operator.strideTricks(CC_INPUT_SIZE, CC_STRIDE_STEP))
         .tap(() => {
             const date = new Date();
             console.log(`checking raise pattern at ${getTimeLabel(date)}`);
@@ -51,7 +51,7 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
         .operator(Operator.group(CC_TRAIN_WINDOW_SIZE))
-        .operator(Operator.strideTricks(CC_INPUT_SIZE))
+        .operator(Operator.strideTricks(CC_INPUT_SIZE, CC_STRIDE_STEP))
         .tap(() => {
             const date = new Date();
             console.log(`checking fail pattern at ${getTimeLabel(date)}`);
