@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { AutoSizer, sleep, Breadcrumbs } from "react-declarative";
 
-import { NeuralNetwork } from "brain.js";
+import { NeuralNetwork, NeuralNetworkGPU } from "brain.js";
 
 import { makeStyles } from "../../styles/makeStyles";
 
@@ -42,7 +42,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-interface INet extends NeuralNetwork<any, any> {}
+interface INet extends NeuralNetworkGPU<any, any> {}
 
 const options = [
   {
@@ -55,6 +55,12 @@ const options = [
     label: "Export to JS",
   },
 ];
+
+const getPrediction = async (net: INet): Promise<[number, number]> => {
+  const netInput = await netInputEmitter.toPromise();
+  const [upward = 0, downward = 0] = Object.values(net.run(netInput));
+  return [upward, downward] as [number, number];
+};
 
 export const MainPage = () => {
   const { classes } = useStyles();
@@ -80,13 +86,15 @@ export const MainPage = () => {
     () =>
       netEmitter.once((net) => {
         const process = async () => {
+          let [prevUpward, prevDownward] = await getPrediction(net);
           while (isMounted.current) {
-            const netInput = await netInputEmitter.toPromise();
-            const [upward = 0, downward = 0] = Object.values(net.run(netInput));
-            console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`)
-            const result = upward > downward ? "upward" : "downward";
+            const [upward, downward] = await getPrediction(net);
+            console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`);
+            const result = upward > prevUpward ? "upward" : downward > prevDownward ? "downward" : null;
             predictEmitter.next(result);
-            await sleep(30_000);
+            prevUpward = upward;
+            prevDownward = downward;
+            await sleep(10_000);
           }
         };
         process();
