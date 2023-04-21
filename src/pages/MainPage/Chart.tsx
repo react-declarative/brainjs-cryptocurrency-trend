@@ -1,6 +1,6 @@
 import { useRef, useLayoutEffect } from "react";
 
-import { TSubject, useSubject, useReloadTrigger } from "react-declarative";
+import { TSubject, Operator, useSubject, useReloadTrigger } from "react-declarative";
 
 import {
   createChart,
@@ -110,30 +110,32 @@ export const Chart = ({
       title: "",
     });
 
-    const disconnectPredictEmitter = predictChanged.subscribe((trend) => {
-      const date = new Date();
-      if (trend === "upward") {
-        line.applyOptions({
-          title: `Raise predict ${getTimeLabel(date)}`,
-          color: "#00a73e",
-          price: lastPrice,
-        });
-      }
-      if (trend === "downward") {
-        line.applyOptions({
-          title: `Fail predict ${getTimeLabel(date)}`,
-          color: "#e4000b",
-          price: lastPrice,
-        });
-      }
-      if (trend === "train") {
-        line.applyOptions({
-          title: "",
-          color: "transparent",
-          price: 0,
-        });
-      }
-    });
+    const disconnectPredictEmitter = predictChanged
+      .operator(Operator.distinct())
+      .connect((trend: string) => {
+        const date = new Date();
+        if (trend === "upward") {
+          line.applyOptions({
+            title: `Raise predict ${getTimeLabel(date)}`,
+            color: "#00a73e",
+            price: lastPrice,
+          });
+        }
+        if (trend === "downward") {
+          line.applyOptions({
+            title: `Fail predict ${getTimeLabel(date)}`,
+            color: "#e4000b",
+            price: lastPrice,
+          });
+        }
+        if (trend === "train") {
+          line.applyOptions({
+            title: "",
+            color: "transparent",
+            price: 0,
+          });
+        }
+      });
 
     return () => {
       chart.remove();

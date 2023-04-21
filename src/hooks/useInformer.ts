@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 
 import { useSnackbar } from 'notistack';
-import { TSubject } from 'react-declarative';
+import { Subject, Operator } from 'react-declarative';
 
-export const useInformer = (source: TSubject<"train" | "upward" | "downward" | null>) => {
+export const useInformer = (source: Subject<"train" | "upward" | "downward" | null>) => {
     const [type, setType] = useState<"train" | "upward" | "downward" | null>("train");
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-    useEffect(() => source.subscribe((type) => setType(type)), [source]);
+    useEffect(() => source.operator(Operator.distinct()).connect((type: any) => setType(type)), [source]);
 
     useEffect(() => {
         if (type) {
