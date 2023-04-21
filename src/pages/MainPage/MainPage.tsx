@@ -97,6 +97,11 @@ export const MainPage = () => {
         const process = async () => {
           let [prevUpward, prevDownward] = await getPrediction(net);
           await sleep(10_000);
+          /**
+           * Caution: Black Magic
+           * this tool reacts to the change of delta of neural outputs instead
+           * of values. this makes the emit of action faster in times
+           */
           while (isMounted.current) {
             const [upward, downward] = await getPrediction(net);
             console.log(`net predict upward=${upward} downward=${downward} time=${getTimeLabel(new Date())}`);
