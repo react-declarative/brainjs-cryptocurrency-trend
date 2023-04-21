@@ -48,13 +48,11 @@ export const calculateTrend = (data: number[]) => {
     return trendDirection;
 };
 
-export const checkForBullRun = (strides: number[][], trend: 1 | -1) => {
-    let isOk = true;
-    strides.forEach((stride) => {
+export const filterBullRun = (strides: number[][], trend: 1 | -1) => {
+    return strides.filter((stride) => {
         const { sign } = makeSlope(stride.map((value) => value * 100));
-        isOk = isOk && (sign === 0 || sign === trend);
+        return sign === 0 || sign === trend;
     });
-    return isOk;
 };
 
 export default calculateTrend;

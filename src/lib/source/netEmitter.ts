@@ -3,11 +3,11 @@ import { NeuralNetworkGPU } from 'brain.js';
 
 import priceEmitter from './priceEmitter';
 
-import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST } from '../../config/params';
+import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TARGET_SIZE } from '../../config/params';
 
 import getTimeLabel from '../../utils/getTimeLabel';
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
-import calculateTrend, { checkForBullRun } from '../../utils/calculateTrend';
+import calculateTrend, { filterBullRun } from '../../utils/calculateTrend';
 
 import { netManager, trainManager } from '../schema';
 
@@ -26,10 +26,13 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
             const date = new Date();
             console.log(`catched raise pattern at ${getTimeLabel(date)}`);
         })
-        .filter((strides: number[][]) => {
-            const isOk = checkForBullRun(strides, 1);
-            !isOk && console.log(`raise pattern is not bull run ${getTimeLabel(new Date())}`);
-            return isOk;
+        .map((strides: number[][]) => filterBullRun(strides, 1))
+        .filter((strides) => {
+            if (strides.length < CC_TRAIN_TARGET_SIZE) {
+                console.log(`raise pattern is not bull run ${getTimeLabel(new Date())}`);
+                return false
+            }
+            return true;
         })
 );
 
@@ -48,10 +51,13 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
             const date = new Date();
             console.log(`catched fail pattern at ${getTimeLabel(date)}`);
         })
-        .filter((strides: number[][]) => {
-            const isOk = checkForBullRun(strides, -1);
-            !isOk && console.log(`fail pattern is not bull run ${getTimeLabel(new Date())}`);
-            return isOk;
+        .map((strides: number[][]) => filterBullRun(strides, -1))
+        .filter((strides) => {
+            if (strides.length < CC_TRAIN_TARGET_SIZE) {
+                console.log(`fail pattern is not bull run ${getTimeLabel(new Date())}`);
+                return false
+            }
+            return true;
         })
 );
 
