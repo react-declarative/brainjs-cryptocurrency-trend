@@ -25,7 +25,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-export const ErrorPage = () => {
+export const UntrainedPage = () => {
   const { classes } = useStyles();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -58,7 +58,7 @@ export const ErrorPage = () => {
         <Paper className={classes.container}>
           <Stack direction="column" gap="15px">
             <span>
-              It looks like this app finished with uncaught exception
+              The trainment error is bigger than 0.3. That means the Crypto Whale was not collected or net is invalid.
               <span className="emoji">😐</span>
               <br />
               This page will auto-reload in 15 seconds
@@ -73,4 +73,4 @@ export const ErrorPage = () => {
   );
 };
 
-export default ErrorPage;
+export default UntrainedPage;

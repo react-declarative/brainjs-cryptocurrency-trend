@@ -90,6 +90,7 @@ export const MainPage = () => {
 
         if (status.error > CC_MAX_TRAIN_ERROR) {
           predictEmitter.next("untrained");
+          history.push("/untrained-page");
           return;
         } 
 
@@ -105,7 +106,7 @@ export const MainPage = () => {
             predictEmitter.next(result);
             prevUpward = upward;
             prevDownward = downward;
-            await sleep(10_000);
+            await sleep(5_000);
           }
         };
 

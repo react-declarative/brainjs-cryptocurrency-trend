@@ -95,6 +95,7 @@ export const netEmitter = Source
             })),
         ];
         const status = await net.trainAsync(data, trainManager.getValue()!);
+        console.log(`net trained error=${status.error} iterations=${status.iterations} ${getTimeLabel(new Date())}`);
         return { net, status };
     });
 

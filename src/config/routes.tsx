@@ -1,6 +1,7 @@
 import { ISwitchItem } from "react-declarative";
 
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
+import UntrainedPage from "../pages/UntrainedPage/UntrainedPage";
 import SetupPage from "../pages/SetupPage/SetupPage";
 import MainPage from "../pages/MainPage/MainPage";
 
@@ -27,6 +28,10 @@ export const routes: ISwitchItem[] = [
   {
     path: "/error-page",
     element: ErrorPage,
+  },
+  {
+    path: "/untrained-page",
+    element: UntrainedPage,
   },
 ];
 
