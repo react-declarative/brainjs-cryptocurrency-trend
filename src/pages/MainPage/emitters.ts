@@ -1,4 +1,4 @@
-import { Subject, fetchApi } from "react-declarative";
+import { Subject, fetchApi, singlerun } from "react-declarative";
 import getTimeLabel from "../../utils/getTimeLabel";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
@@ -9,7 +9,7 @@ export const predictEmitter = new Subject<"train" | "upward" | "downward" | "unt
  *      1. does nothing if have pending request (avoid duplicated requests)
  *      2. does nothing if have unresolved order (opened LIMIT_SELL or opened LIMIT_BUY with incoming LIMIT_SELL)
  */
-const doTrade = async (sellPercent: number, usdtAmount: number) => {
+const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     try {
         await fetchApi(new URL('/api/v1/do_trade', window.location.origin), {
             method: "POST",
@@ -23,7 +23,7 @@ const doTrade = async (sellPercent: number, usdtAmount: number) => {
     } catch {
         console.log(`trade request failed ${getTimeLabel(new Date())}`);
     }
-}
+});
 
 predictEmitter.subscribe((trend) => {
     if (trend === "upward") {
