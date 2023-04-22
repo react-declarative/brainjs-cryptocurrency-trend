@@ -49,7 +49,7 @@ export const priceEmitter = Source.multicast(() => Source.create<number>((next) 
         ws.addEventListener('message', (msg) => {
             const data = JSON.parse(msg.data);
             if (data.type === "message" && data.topic === "/market/ticker:ETH-USDT") {
-                next(data.data.price);
+                next(parseFloat(data.data.price));
             }
         });
 

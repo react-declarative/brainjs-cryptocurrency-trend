@@ -1,13 +1,16 @@
 import { useRef, useLayoutEffect } from "react";
 
-import { TSubject, Operator, useSubject, useReloadTrigger } from "react-declarative";
+import {
+  TSubject,
+  Operator,
+  useSubject,
+  useReloadTrigger,
+} from "react-declarative";
 
 import {
   createChart,
-  ChartOptions,
-  LineStyleOptions,
-  SeriesOptionsCommon,
-  DeepPartial,
+  Time,
+  SeriesMarker,
   LineStyle,
   UTCTimestamp,
 } from "lightweight-charts";
@@ -22,7 +25,7 @@ interface IChartProps {
   width: number;
 }
 
-const CHART_OPTIONS: DeepPartial<ChartOptions> = {
+const CHART_OPTIONS = {
   layout: {
     textColor: "#d1d4dc",
     backgroundColor: "#0000",
@@ -60,21 +63,17 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
   handleScroll: {
     vertTouchDrag: false,
   },
-};
+} as const;
 
-const SERIES_OPTIONS: DeepPartial<LineStyleOptions & SeriesOptionsCommon> = {
+const SERIES_OPTIONS = {
   color: "#90cbfa",
   lineWidth: 2,
   crosshairMarkerVisible: false,
   lastValueVisible: false,
   priceLineVisible: false,
-};
+} as const;
 
-export const Chart = ({
-  predictEmitter,
-  height,
-  width,
-}: IChartProps) => {
+export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
   const elementRef = useRef<HTMLDivElement>(undefined as never);
 
   const predictChanged = useSubject(predictEmitter);
@@ -89,19 +88,22 @@ export const Chart = ({
       width,
     });
 
-    const series = chart.addLineSeries({
+    const priceSeries = chart.addLineSeries({
       ...SERIES_OPTIONS,
     });
+
+    const markers: SeriesMarker<Time>[] = [];
+    priceSeries.setMarkers(markers);
 
     let lastPrice: number = 0;
 
     const disconnectPriceEmitter = priceEmitter.connect((value) => {
       lastPrice = value;
-      series.update({ value, time: Date.now() as UTCTimestamp });
+      priceSeries.update({ value, time: Date.now() as UTCTimestamp });
       // chart.timeScale().fitContent();
     });
 
-    const line = series.createPriceLine({
+    const line = priceSeries.createPriceLine({
       price: lastPrice,
       color: "transparent",
       lineWidth: 3,
@@ -120,12 +122,26 @@ export const Chart = ({
             color: "#00a73e",
             price: lastPrice,
           });
+          markers.push({
+            time: Date.now() as Time,
+            position: "belowBar",
+            color: "#00a73e",
+            shape: "arrowUp",
+            text: "Upward",
+          });
         }
         if (trend === "downward") {
           line.applyOptions({
             title: `Fail predict ${getTimeLabel(date)}`,
             color: "#e4000b",
             price: lastPrice,
+          });
+          markers.push({
+            time: Date.now() as Time,
+            position: "aboveBar",
+            color: "#e4000b",
+            shape: "arrowDown",
+            text: "Downward",
           });
         }
         if (trend === "train") {
@@ -135,6 +151,7 @@ export const Chart = ({
             price: 0,
           });
         }
+        priceSeries.setMarkers([...markers]);
       });
 
     return () => {

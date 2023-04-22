@@ -1,4 +1,4 @@
-import { Subject, fetchApi, singlerun } from "react-declarative";
+import { Subject, Operator, fetchApi, singlerun } from "react-declarative";
 import getTimeLabel from "../../utils/getTimeLabel";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
@@ -25,10 +25,12 @@ const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     }
 });
 
-predictEmitter.subscribe((trend) => {
-    if (trend === "upward") {
-        doTrade(0.01, 100);
-    }
-});
+predictEmitter
+    .operator(Operator.skip(1))
+    .connect((trend: "upward" | "downward") => {
+        if (trend === "upward") {
+            doTrade(0.01, 100);
+        }
+    });
 
 (window as any).predictEmitter = predictEmitter;
