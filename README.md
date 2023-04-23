@@ -6,38 +6,28 @@
 
 ## Usage
 
-**1. Disable CORS in your browser**
+**1. Start this app**
 
-> Windows
-
-```bat
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=%LOCALAPPDATA%\Google\chromeTemp
-```
-
-> macOS
+> Run frontend
 
 ```bash
-open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security
+npm install
+npm run start:client
 ```
 
-> Linux
+> Run backend
 
 ```bash
-google-chrome --disable-web-security
-```
-
-**2. Start this app**
-
-```bash
+cd ./packages/api-kucoin
 npm install
 npm start
 ```
 
-**3. Configure the neural network. If you can't just press save button, default config is good enough**
+**2. Configure the neural network. If you can't just press save button, default config is good enough**
 
-**4. Wait for whales patterns interception (will take around 10 minutes or more). Open Chrome Dev Tools for detailed log**
+**3. Wait for whales patterns interception (will take around 10 minutes or more). Open Chrome Dev Tools for detailed log**
 
-**5. Enjoy! Search for `TODO: implement` in this app to find a part for order creation integration**
+**4. Enjoy! Search for `TODO: implement` in this app to find a part for order creation integration**
 
 ## How it is made
 
