@@ -92,7 +92,7 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
       ...SERIES_OPTIONS,
     });
 
-    const markers: SeriesMarker<Time>[] = [];
+    let markers: SeriesMarker<Time>[] = [];
     priceSeries.setMarkers(markers);
 
     let lastPrice: number = 0;
@@ -151,7 +151,8 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
             price: 0,
           });
         }
-        priceSeries.setMarkers([...markers]);
+        markers = markers.slice(-5);
+        priceSeries.setMarkers(markers);
       });
 
     return () => {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class DoTradeDto {
   @ApiProperty({
@@ -17,4 +17,10 @@ export class DoTradeDto {
     maxDecimalPlaces: 0,
   })
   readonly usdtAmount: number;
+
+  @ApiProperty({
+    description: 'Order symbol',
+  })
+  @IsString()
+  readonly symbol: string;
 }
