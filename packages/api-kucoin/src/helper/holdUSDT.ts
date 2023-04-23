@@ -61,7 +61,7 @@ export const cancelOrder = async (orderId: string) => {
 export const getMarketPrice = async (symbol = 'ETH-USDT') => {
   const { price = '40000' } = await API.rest.Market.Symbols.getTicker(symbol);
   const numericPrice = parseFloat(price);
-  return numericPrice * 1.01;
+  return numericPrice;
 };
 
 export const getSymbolInfo = async (
@@ -104,7 +104,8 @@ export const sendBuyUSDT = async (
     sizeDecimalPlaces: number;
   },
 ) => {
-  const size = usdToCoins(usdtAmount, marketPrice);
+  const fastPrice = marketPrice * 1.001;
+  const size = usdToCoins(usdtAmount, fastPrice);
   return await API.rest.Trade.Orders.postOrder(
     {
       clientOid: uuid.v4(),
@@ -113,7 +114,7 @@ export const sendBuyUSDT = async (
       type: 'limit',
     },
     {
-      price: roundTicks(marketPrice, priceDecimalPlaces),
+      price: roundTicks(fastPrice, priceDecimalPlaces),
       size: roundTicks(size, sizeDecimalPlaces),
     },
   );
@@ -132,7 +133,8 @@ export const sendSellQTY = async (
     sizeDecimalPlaces: number;
   },
 ) => {
-  const size = usdToCoins(usdtQuantity, marketPrice);
+  const winPrice = marketPrice * sellPercent;
+  const size = usdToCoins(usdtQuantity, winPrice);
   return await API.rest.Trade.Orders.postOrder(
     {
       clientOid: uuid.v4(),
@@ -141,7 +143,7 @@ export const sendSellQTY = async (
       type: 'limit',
     },
     {
-      price: roundTicks(marketPrice * sellPercent, priceDecimalPlaces),
+      price: roundTicks(winPrice, priceDecimalPlaces),
       size: roundTicks(size, sizeDecimalPlaces),
     },
   );
