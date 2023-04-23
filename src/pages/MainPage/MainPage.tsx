@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { AutoSizer, sleep, Breadcrumbs } from "react-declarative";
 
-import { NeuralNetwork, NeuralNetworkGPU } from "brain.js";
+import { NeuralNetwork } from "brain.js";
 
 import { makeStyles } from "../../styles/makeStyles";
 
@@ -44,7 +44,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-interface INet extends NeuralNetworkGPU<any, any> {}
+interface INet extends NeuralNetwork<any, any> {}
 
 const options = [
   {

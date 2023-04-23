@@ -20,7 +20,7 @@ export const initialData: IData = {
     iterations: '30000',
     errorThresh: '0.005',
     log: true,
-    logPeriod: '100',
+    logPeriod: '1000',
     learningRate: '0.001',
     momentum: '0.1',
     callbackPeriod: '10',

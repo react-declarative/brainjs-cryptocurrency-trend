@@ -1,5 +1,5 @@
 import { Source, Operator } from 'react-declarative';
-import { NeuralNetworkGPU } from 'brain.js';
+import { NeuralNetwork } from 'brain.js';
 
 import priceEmitter from './priceEmitter';
 
@@ -91,7 +91,7 @@ export const netTrainsetEmitter = Source.multicast(() => Source
 export const netEmitter = Source.multicast(() => Source.createCold((next) => {
     const process = async () => {
         const [ positiveSet, negativeSet ] = await netTrainsetEmitter.toPromise();
-        const net = new NeuralNetworkGPU({
+        const net = new NeuralNetwork({
             ...netManager.getValue()!,
         });
         const data = [
