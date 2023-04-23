@@ -11,12 +11,21 @@ import calculateTrend, { filterBullRun } from '../../utils/calculateTrend';
 
 import { netManager, trainManager } from '../schema';
 
-const positiveSetEmitter = Source.multicast<number[][]>(() =>
+const TRAIN_PAIRWISE_SIZE = CC_TRAIN_WINDOW_SIZE + 1;
+
+const trendEmitter = Source.multicast(() =>
     priceEmitter
         .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
         .operator(Operator.distinct())
-        .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
-        .filter((data) => calculateTrend(data) === 1)
+        .operator(Operator.pair(TRAIN_PAIRWISE_SIZE))
+        .tap(() => `calculating chunk at ${getTimeLabel(new Date())}`)
+        .map((data) => ({ data, trend: calculateTrend(data) }))
+);
+
+const positiveSetEmitter = Source.multicast<number[][]>(() =>
+    trendEmitter
+        .filter(({ trend }) => trend === 1)
+        .map(({ data }) => data)
         .flatMap((items) => items)
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
@@ -42,11 +51,9 @@ const positiveSetEmitter = Source.multicast<number[][]>(() =>
 );
 
 const negativeSetEmitter = Source.multicast<number[][]>(() =>
-    priceEmitter
-        .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
-        .operator(Operator.distinct())
-        .operator(Operator.group(CC_TRAIN_WINDOW_SIZE + 1))
-        .filter((data) => calculateTrend(data) === -1)
+    trendEmitter
+        .filter(({ trend }) => trend === -1)
+        .map(({ data }) => data)
         .flatMap((items) => items)
         .operator(Operator.pair())
         .map(([a, b]) => toNeuralValue(percentDiff(a, b)))
@@ -71,16 +78,19 @@ const negativeSetEmitter = Source.multicast<number[][]>(() =>
         })
 );
 
-export const netEmitter = Source
+export const netTrainsetEmitter = Source.multicast(() => Source
     .join([
         positiveSetEmitter,
         negativeSetEmitter,
     ], {
         race: true,
     })
-    .operator<[number[][], number[][]]>(Operator.take(1))
     .tap(([positiveSet, negativeSet]) => console.log(`starting trainment ${getTimeLabel(new Date())}`, { positiveSet, negativeSet }))
-    .mapAsync(async ([positiveSet, negativeSet]) => {
+);
+
+export const netEmitter = Source.multicast(() => Source.createCold((next) => {
+    const process = async () => {
+        const [ positiveSet, negativeSet ] = await netTrainsetEmitter.toPromise();
         const net = new NeuralNetworkGPU({
             ...netManager.getValue()!,
         });
@@ -96,7 +106,9 @@ export const netEmitter = Source
         ];
         const status = await net.trainAsync(data, trainManager.getValue()!);
         console.log(`net trained error=${status.error} iterations=${status.iterations} ${getTimeLabel(new Date())}`);
-        return { net, status };
-    });
+        next({ net, status });
+    }
+    process();
+}));
 
 export default netEmitter;
