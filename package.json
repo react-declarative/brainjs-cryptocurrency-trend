@@ -24,7 +24,9 @@
   },
   "scripts": {
     "start:client": "react-scripts start",
-    "start:kucoin": "cd ./packages/api-kucoin && npm start"
+    "start:kucoin": "cd ./packages/api-kucoin && npm start",
+    "build": "react-scripts build",
+    "prod": "sh ./scripts/prod.sh"
   },
   "eslintConfig": {
     "extends": [
