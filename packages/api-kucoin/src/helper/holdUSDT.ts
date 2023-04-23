@@ -51,7 +51,7 @@ export const hasOpenOrders = async (symbol = 'ETH-USDT') => {
 export const isOrderFullfilled = async (orderId: string) => {
   const { data: { isActive = true } = {} } =
     await API.rest.Trade.Orders.getOrderByID(orderId);
-  return isActive;
+  return !isActive;
 };
 
 export const cancelOrder = async (orderId: string) => {
