@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 
-import * as express from "express";
+import * as express from 'express';
 
 import { config } from 'dotenv';
 import { createServer } from 'http';
@@ -14,7 +14,7 @@ import { swagger } from './middleware/swagger.middleware';
 import { listen } from './utils/nest-listen.util';
 import { ioc } from './utils/nest-ioc.util';
 
-import "./polyfills";
+import './polyfills';
 
 const bootstrap = async () => {
   const server = express();

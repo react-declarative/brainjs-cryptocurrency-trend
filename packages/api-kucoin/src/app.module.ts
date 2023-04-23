@@ -1,7 +1,7 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { APP_PIPE } from '@nestjs/core';
-import { join } from "path";
+import { join } from 'path';
 
 import { ApiService } from './service/api.service';
 import { ConfigService } from './service/config.service';

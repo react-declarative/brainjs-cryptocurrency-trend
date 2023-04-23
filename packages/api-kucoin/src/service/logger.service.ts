@@ -5,23 +5,23 @@ const logger = new Logger('nestjs');
 
 @Injectable()
 export class LoggerService implements BaseLoggerService {
-    log(message: any, ...optionalParams: any[]) {
-        logger.log(message, ...optionalParams);
-    }
+  log(message: any, ...optionalParams: any[]) {
+    logger.log(message, ...optionalParams);
+  }
 
-    error(message: any, ...optionalParams: any[]) {
-        logger.error(message, ...optionalParams);
-    }
+  error(message: any, ...optionalParams: any[]) {
+    logger.error(message, ...optionalParams);
+  }
 
-    warn(message: any, ...optionalParams: any[]) {
-        logger.warn(message, ...optionalParams);
-    }
+  warn(message: any, ...optionalParams: any[]) {
+    logger.warn(message, ...optionalParams);
+  }
 
-    debug(message: any, ...optionalParams: any[]) {
-        logger.debug(message, ...optionalParams);
-    }
+  debug(message: any, ...optionalParams: any[]) {
+    logger.debug(message, ...optionalParams);
+  }
 
-    verbose(message: any, ...optionalParams: any[]) {
-        logger.verbose(message, ...optionalParams);
-    }
+  verbose(message: any, ...optionalParams: any[]) {
+    logger.verbose(message, ...optionalParams);
+  }
 }

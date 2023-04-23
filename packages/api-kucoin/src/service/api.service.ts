@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as API from 'kucoin-node-sdk';
 import * as compose from 'compose-function';
-import fetch from 'node-fetch';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
@@ -23,18 +22,16 @@ export class ApiService implements OnModuleInit {
 
   getCandleEmitter() {
     return new Observable<number>((subscriber) => {
-      let disposeRef: Function = () => undefined;
+      let disposeRef: () => void = () => undefined;
 
       const process = async () => {
-        let intervalRef: Function = () => undefined;
+        let intervalRef: () => void = () => undefined;
 
         const {
-          data: {
-            instanceServers = [],
-            token = ''
-          },
-        } = await fetch('https://api.kucoin.com/api/v1/bullet-public', { method: 'POST' })
-          .then<any>((data) => data.json());
+          data: { instanceServers = [], token = '' },
+        } = await fetch('https://api.kucoin.com/api/v1/bullet-public', {
+          method: 'POST',
+        }).then<any>((data) => data.json());
 
         const server = instanceServers.find(
           (server: any) => (server.protocol = 'websocket'),

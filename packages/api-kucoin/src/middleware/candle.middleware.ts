@@ -49,7 +49,9 @@ export const candle = (app: INestApplication, server: Server) => {
           },
           (error) => {
             const { name, message } = serializeError(error);
-            logger.log(`candle-middleware api exception client_id=${client.id} name=${name} message=${message}`);
+            logger.log(
+              `candle-middleware api exception client_id=${client.id} name=${name} message=${message}`,
+            );
             subscription && subscription.unsubscribe();
             client.close(
               '500',
@@ -68,7 +70,9 @@ export const candle = (app: INestApplication, server: Server) => {
         });
       } catch (err) {
         const { name, message } = serializeError(err);
-        logger.log(`candle-middleware client exception client_id=${client.id} name=${name} message=${message}`);
+        logger.log(
+          `candle-middleware client exception client_id=${client.id} name=${name} message=${message}`,
+        );
         client.close(
           '500',
           JSON.stringify({
