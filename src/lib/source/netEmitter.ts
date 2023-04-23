@@ -17,9 +17,10 @@ const trendEmitter = Source.multicast(() =>
     priceEmitter
         .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
         .operator(Operator.distinct())
+        .tap(() => console.log(`captured chunk at ${getTimeLabel(new Date())}`))
         .operator(Operator.pair(TRAIN_PAIRWISE_SIZE))
         .map((data) => ({ data, trend: calculateTrend(data) }))
-        .tap(({ trend }) => `calculating chunk at ${getTimeLabel(new Date())} trend=${trend}`)
+        .tap(({ trend }) => `calculating blob at ${getTimeLabel(new Date())} trend=${trend}`)
 );
 
 const positiveSetEmitter = Source.multicast<number[][]>(() =>
