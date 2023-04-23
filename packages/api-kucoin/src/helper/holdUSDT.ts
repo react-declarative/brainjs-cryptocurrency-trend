@@ -188,7 +188,7 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   const balanceAfter = await getBalance('USDT');
 
   let usdtQuantity = balanceBefore - balanceAfter;
-  usdtQuantity = usdtQuantity - usdtQuantity * maker;
+  usdtQuantity -= usdtQuantity * maker;
 
   const { data: { orderId: sellOrderId = '' } = {} } = await sendSellQTY(
     usdtQuantity,
