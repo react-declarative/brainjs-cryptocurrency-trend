@@ -13,7 +13,7 @@ import { netManager, trainManager } from '../schema';
 
 const TRAIN_PAIRWISE_SIZE = CC_TRAIN_WINDOW_SIZE + 1;
 
-const trendEmitter = Source.multicast(() =>
+export const trendEmitter = Source.multicast(() =>
     priceEmitter
         .map((value) => Math.floor(value * CC_PRICE_SLOPE_ADJUST))
         .operator(Operator.distinct())

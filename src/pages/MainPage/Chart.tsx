@@ -16,6 +16,7 @@ import {
 } from "lightweight-charts";
 
 import priceEmitter from "../../lib/source/priceEmitter";
+import { trendEmitter } from "../../lib/source/netEmitter";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 
@@ -93,7 +94,11 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
     });
 
     let markers: SeriesMarker<Time>[] = [];
-    priceSeries.setMarkers(markers);
+
+    const updateMarkers = () => {
+      const data = markers.slice(-10);
+      priceSeries.setMarkers(data);
+    };
 
     let lastPrice: number = 0;
 
@@ -112,8 +117,31 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
       title: "",
     });
 
+    const disconnectTrendEmitter = trendEmitter.connect(({ trend }) => {
+      if (trend === 1) {
+        markers.push({
+          time: Date.now() as Time,
+          position: "inBar",
+          color: "#ff84b0",
+          shape: "circle",
+          text: "Positive set",
+        });
+      }
+      if (trend === -1) {
+        markers.push({
+          time: Date.now() as Time,
+          position: "inBar",
+          color: "#ff84b0",
+          shape: "square",
+          text: "Negative set",
+        });
+      }
+      updateMarkers();
+    });
+
     const disconnectPredictEmitter = predictChanged
       .operator(Operator.distinct())
+      .tap(() => disconnectTrendEmitter())
       .connect((trend: string) => {
         const date = new Date();
         if (trend === "upward") {
@@ -151,14 +179,14 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
             price: 0,
           });
         }
-        markers = markers.slice(-5);
-        priceSeries.setMarkers(markers);
+        updateMarkers();
       });
 
     return () => {
       chart.remove();
       disconnectPriceEmitter();
       disconnectPredictEmitter();
+      disconnectTrendEmitter();
     };
   }, [height, width, predictChanged, reloadTrigger]);
 
