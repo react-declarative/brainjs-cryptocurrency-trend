@@ -27,7 +27,7 @@ npm start
 
 **3. Wait for whales patterns interception (will take around 10 minutes or more). Open Chrome Dev Tools for detailed log**
 
-**4. Enjoy! Search for `TODO: implement` in this app to find a part for order creation integration**
+**4. Enjoy!**
 
 ## How it is made
 
