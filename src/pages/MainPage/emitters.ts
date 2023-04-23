@@ -35,7 +35,7 @@ predictEmitter
     .operator(Operator.skip(1))
     .connect((trend: "upward" | "downward") => {
         if (trend === "upward") {
-            doTrade(0.01, 100);
+            doTrade(1.01, 100);
         }
     });
 
