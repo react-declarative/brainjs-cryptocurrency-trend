@@ -98,7 +98,7 @@ export class ApiService implements OnModuleInit {
     });
   }
 
-  doTrade(sellPercent: number, usdtAmount: number) {
+  doTrade(sellPercent: string, usdtAmount: string) {
     this.loggerService.log(
       `api-service do_trade sell_percent=${sellPercent} usdt_amount=${usdtAmount}`,
     );

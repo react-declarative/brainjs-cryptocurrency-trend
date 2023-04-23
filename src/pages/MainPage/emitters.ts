@@ -1,4 +1,4 @@
-import { Subject, Operator, fetchApi, singlerun } from "react-declarative";
+import { Subject, Operator, fetchApi, singlerun, roundTicks } from "react-declarative";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 
@@ -18,9 +18,12 @@ const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
             method: "POST",
             body: JSON.stringify({
                 symbol: "ETHUSDT",
-                sellPercent: sellPercent.toFixed(3),
+                sellPercent: roundTicks(sellPercent, 6),
                 usdtAmount: usdtAmount.toFixed(0),
             }, null, 2),
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
         console.log(`trade request sended ${getTimeLabel(new Date())}`);
     } catch {

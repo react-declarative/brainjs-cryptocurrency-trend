@@ -20,6 +20,8 @@ import { trendEmitter } from "../../lib/source/netEmitter";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 
+import history from "../../history";
+
 interface IChartProps {
   predictEmitter: TSubject<"train" | "upward" | "downward" | null>;
   height: number;
@@ -102,11 +104,15 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
 
     let lastPrice: number = 0;
 
-    const disconnectPriceEmitter = priceEmitter.connect((value) => {
-      lastPrice = value;
-      priceSeries.update({ value, time: Date.now() as UTCTimestamp });
-      // chart.timeScale().fitContent();
-    });
+    const disconnectPriceEmitter = priceEmitter
+      .operator(Operator.liveness(() => {
+        history.push('/error-page');
+      }))
+      .connect((value) => {
+        lastPrice = value;
+        priceSeries.update({ value, time: Date.now() as UTCTimestamp });
+        // chart.timeScale().fitContent();
+      });
 
     const line = priceSeries.createPriceLine({
       price: lastPrice,
@@ -118,7 +124,6 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
     });
 
     const disconnectTrendEmitter = trendEmitter
-      .debounce(5_000)
       .connect(({ trend }) => {
         if (trend === 1 || trend === -1) {
           markers = markers
