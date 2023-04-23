@@ -12,6 +12,7 @@ import { candle } from './middleware/candle.middleware';
 import { swagger } from './middleware/swagger.middleware';
 
 import { listen } from './utils/nest-listen.util';
+import { ioc } from './utils/nest-ioc.util';
 
 import "./polyfills";
 
@@ -23,6 +24,8 @@ const bootstrap = async () => {
 
   candle(app, httpServer);
   swagger(app);
+
+  ioc(app);
 
   listen(app, httpServer);
 };
