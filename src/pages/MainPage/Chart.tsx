@@ -96,8 +96,8 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
     let markers: SeriesMarker<Time>[] = [];
 
     const updateMarkers = () => {
-      const data = markers.slice(-10);
-      priceSeries.setMarkers(data);
+      markers = markers.slice(-10);
+      priceSeries.setMarkers(markers);
     };
 
     let lastPrice: number = 0;
@@ -117,27 +117,22 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
       title: "",
     });
 
-    const disconnectTrendEmitter = trendEmitter.connect(({ trend }) => {
-      if (trend === 1) {
-        markers.push({
-          time: Date.now() as Time,
-          position: "inBar",
-          color: "#ff84b0",
-          shape: "circle",
-          text: "Positive set",
-        });
-      }
-      if (trend === -1) {
-        markers.push({
-          time: Date.now() as Time,
-          position: "inBar",
-          color: "#ff84b0",
-          shape: "square",
-          text: "Negative set",
-        });
-      }
-      updateMarkers();
-    });
+    const disconnectTrendEmitter = trendEmitter
+      .debounce(5_000)
+      .connect(({ trend }) => {
+        if (trend === 1 || trend === -1) {
+          markers = markers
+            .filter(({ position }) => position !== 'inBar')
+          markers.push({
+            time: Date.now() as Time,
+            position: "inBar",
+            color: "#ff84b0",
+            shape: trend === 1 ? "circle" : "square",
+            text: trend === 1 ? "Positive set" : "Negative set",
+          });
+        }
+        updateMarkers();
+      });
 
     const disconnectPredictEmitter = predictChanged
       .operator(Operator.distinct())
