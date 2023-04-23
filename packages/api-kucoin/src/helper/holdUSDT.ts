@@ -10,7 +10,7 @@ export const usdToCoins = (totalUsd: number, coinPrice: number) => {
   return totalUsd / coinPrice;
 };
 
-export const roundTicks = (value, digits = 2) => {
+export const roundTicks = (value: number, digits = 2) => {
   let multiplier = 1;
   for (let i = 0; i < digits; i++) {
     multiplier *= 10;
