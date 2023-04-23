@@ -1,5 +1,8 @@
 import { Subject, Operator, fetchApi, singlerun } from "react-declarative";
+
 import getTimeLabel from "../../utils/getTimeLabel";
+
+import { CC_TRADE_HANDLER } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -11,7 +14,7 @@ export const predictEmitter = new Subject<"train" | "upward" | "downward" | "unt
  */
 const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     try {
-        await fetchApi(new URL('/api/v1/do_trade', window.location.origin), {
+        await fetchApi(new URL(CC_TRADE_HANDLER, window.location.origin), {
             method: "POST",
             body: JSON.stringify({
                 symbol: "ETHUSDT",
