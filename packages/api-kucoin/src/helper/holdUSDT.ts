@@ -121,7 +121,7 @@ export const sendBuyUSDT = async (
 };
 
 export const sendSellQTY = async (
-  usdtQuantity: number,
+  ethQuantity: number,
   sellPercent: number,
   {
     marketPrice,
@@ -134,7 +134,6 @@ export const sendSellQTY = async (
   },
 ) => {
   const winPrice = marketPrice * sellPercent;
-  const size = usdToCoins(usdtQuantity, winPrice);
   return await API.rest.Trade.Orders.postOrder(
     {
       clientOid: uuid.v4(),
@@ -144,7 +143,7 @@ export const sendSellQTY = async (
     },
     {
       price: roundTicks(winPrice, priceDecimalPlaces),
-      size: roundTicks(size, sizeDecimalPlaces),
+      size: roundTicks(ethQuantity, sizeDecimalPlaces),
     },
   );
 };
@@ -157,7 +156,7 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   const marketPrice = await getMarketPrice('ETH-USDT');
   const { priceDecimalPlaces, sizeDecimalPlaces } = await getSymbolInfo();
   const { maker } = await getTradeFee('ETH-USDT');
-  const balanceBefore = await getBalance('USDT');
+  const balanceBefore = await getBalance('ETH');
 
   const { data: { orderId: buyOrderId = '' } = {} } = await sendBuyUSDT(
     usdtAmount,
@@ -187,13 +186,13 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
     throw new Error('holdUSDT sendBuyUSDT order not resolved');
   }
 
-  const balanceAfter = await getBalance('USDT');
+  const balanceAfter = await getBalance('ETH');
 
-  let usdtQuantity = balanceBefore - balanceAfter;
-  usdtQuantity -= usdtQuantity * maker;
+  let ethQuantity = balanceAfter - balanceBefore;
+  ethQuantity -= ethQuantity * maker;
 
   const { data: { orderId: sellOrderId = '' } = {} } = await sendSellQTY(
-    usdtQuantity,
+    ethQuantity,
     sellPercent,
     {
       marketPrice,
