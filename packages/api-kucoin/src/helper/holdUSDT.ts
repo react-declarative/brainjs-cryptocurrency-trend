@@ -64,7 +64,7 @@ export const getMarketPrice = async (symbol = 'ETH-USDT') => {
   return numericPrice;
 };
 
-export const getSymbolInfo = async (
+export const getRoundTickslInfo = async (
   symbol = 'ETH-USDT',
 ): Promise<{
   priceDecimalPlaces: number;
@@ -103,21 +103,23 @@ export const sendBuyUSDT = async (
     priceDecimalPlaces: number;
     sizeDecimalPlaces: number;
   },
-) => {
+): Promise<string | null> => {
   const fastPrice = marketPrice * 1.001;
   const size = usdToCoins(usdtAmount, fastPrice);
-  return await API.rest.Trade.Orders.postOrder(
-    {
-      clientOid: uuid.v4(),
-      side: 'buy',
-      symbol: 'ETH-USDT',
-      type: 'limit',
-    },
-    {
-      price: roundTicks(fastPrice, priceDecimalPlaces),
-      size: roundTicks(size, sizeDecimalPlaces),
-    },
-  );
+  const { data: { orderId: buyOrderId = '' } = {} } =
+    await API.rest.Trade.Orders.postOrder(
+      {
+        clientOid: uuid.v4(),
+        side: 'buy',
+        symbol: 'ETH-USDT',
+        type: 'limit',
+      },
+      {
+        price: roundTicks(fastPrice, priceDecimalPlaces),
+        size: roundTicks(size, sizeDecimalPlaces),
+      },
+    );
+  return buyOrderId || null;
 };
 
 export const sendSellQTY = async (
@@ -132,20 +134,22 @@ export const sendSellQTY = async (
     priceDecimalPlaces: number;
     sizeDecimalPlaces: number;
   },
-) => {
+): Promise<string | null> => {
   const winPrice = marketPrice * sellPercent;
-  return await API.rest.Trade.Orders.postOrder(
-    {
-      clientOid: uuid.v4(),
-      side: 'sell',
-      symbol: 'ETH-USDT',
-      type: 'limit',
-    },
-    {
-      price: roundTicks(winPrice, priceDecimalPlaces),
-      size: roundTicks(ethQuantity, sizeDecimalPlaces),
-    },
-  );
+  const { data: { orderId: sellOrderId = '' } = {} } =
+    await API.rest.Trade.Orders.postOrder(
+      {
+        clientOid: uuid.v4(),
+        side: 'sell',
+        symbol: 'ETH-USDT',
+        type: 'limit',
+      },
+      {
+        price: roundTicks(winPrice, priceDecimalPlaces),
+        size: roundTicks(ethQuantity, sizeDecimalPlaces),
+      },
+    );
+  return sellOrderId || null;
 };
 
 export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
@@ -154,18 +158,15 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   }
 
   const marketPrice = await getMarketPrice('ETH-USDT');
-  const { priceDecimalPlaces, sizeDecimalPlaces } = await getSymbolInfo();
+  const { priceDecimalPlaces, sizeDecimalPlaces } = await getRoundTickslInfo();
   const { maker } = await getTradeFee('ETH-USDT');
   const balanceBefore = await getBalance('ETH');
 
-  const { data: { orderId: buyOrderId = '' } = {} } = await sendBuyUSDT(
-    usdtAmount,
-    {
-      marketPrice,
-      priceDecimalPlaces,
-      sizeDecimalPlaces,
-    },
-  );
+  const buyOrderId = await sendBuyUSDT(usdtAmount, {
+    marketPrice,
+    priceDecimalPlaces,
+    sizeDecimalPlaces,
+  });
 
   if (!buyOrderId) {
     throw new Error('holdUSDT sendBuyUSDT failed');
@@ -191,15 +192,11 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   let ethQuantity = balanceAfter - balanceBefore;
   ethQuantity -= ethQuantity * maker;
 
-  const { data: { orderId: sellOrderId = '' } = {} } = await sendSellQTY(
-    ethQuantity,
-    sellPercent,
-    {
-      marketPrice,
-      priceDecimalPlaces,
-      sizeDecimalPlaces,
-    },
-  );
+  const sellOrderId = await sendSellQTY(ethQuantity, sellPercent, {
+    marketPrice,
+    priceDecimalPlaces,
+    sizeDecimalPlaces,
+  });
 
   if (!sellOrderId) {
     throw new Error('holdUSDT sendSellQTY failed');
