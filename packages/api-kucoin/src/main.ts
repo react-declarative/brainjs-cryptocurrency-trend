@@ -1,5 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
+import { appendFileSync } from 'fs';
+import { serializeError } from 'serialize-error';
 
 import * as express from 'express';
 
@@ -29,6 +31,15 @@ const bootstrap = async () => {
 
   listen(app, httpServer);
 };
+
+process.on('uncaughtException', (error) => {
+  appendFileSync('./error.log', JSON.stringify(serializeError(error), null, 2));
+  process.exit(-1);
+});
+
+process.on('unhandledRejection', (error) => {
+  throw error;
+});
 
 config();
 bootstrap();

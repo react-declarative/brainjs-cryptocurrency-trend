@@ -18,9 +18,9 @@
     "react": "18.2.0",
     "react-declarative": "2.2.193",
     "react-dom": "18.2.0",
+    "sockjs-client": "1.5.2",
     "tss-react": "4.3.4",
-    "uuid": "9.0.0",
-    "sockjs-client": "1.5.2"
+    "uuid": "9.0.0"
   },
   "scripts": {
     "start:client": "react-scripts start",
