@@ -3,11 +3,11 @@ import { NeuralNetwork } from 'brain.js';
 
 import priceEmitter from './priceEmitter';
 
-import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TARGET_SIZE, CC_STRIDE_STEP, CC_TRADE_PERCENT } from '../../config/params';
+import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TARGET_SIZE, CC_STRIDE_STEP } from '../../config/params';
 
 import getTimeLabel from '../../utils/getTimeLabel';
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
-import calculateTrend, { filterBullRun, calculateRevenue } from '../../utils/calculateTrend';
+import calculateTrend, { filterBullRun } from '../../utils/calculateTrend';
 
 import { netManager, trainManager } from '../schema';
 
@@ -26,14 +26,6 @@ export const trendEmitter = Source.multicast(() =>
 const positiveSetEmitter = Source.multicast<number[][]>(() =>
     trendEmitter
         .filter(({ trend }) => trend === 1)
-        .filter(({ data }) => {
-            const diff = calculateRevenue(data);
-            const isOk = diff >= CC_TRADE_PERCENT;
-            if (!isOk) {
-                console.log(`raise pattern does not match revenue diff=${diff} ${getTimeLabel(new Date())}`);
-            }
-            return isOk;
-        })
         .map(({ data }) => data)
         .flatMap((items) => items)
         .operator(Operator.pair())
