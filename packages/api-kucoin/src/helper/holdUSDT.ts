@@ -201,6 +201,13 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   if (!sellOrderId) {
     throw new Error('holdUSDT sendSellQTY failed');
   }
+
+  for (let i = 0; i !== 10; i++) {
+    if (await isOrderFullfilled(sellOrderId)) {
+      break;
+    }
+    await sleep();
+  }
 };
 
 (globalThis as any).hasOpenOrders = hasOpenOrders;
