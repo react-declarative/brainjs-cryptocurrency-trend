@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import getTimeLabel from "../../utils/getTimeLabel";
 import playSound, { Sound } from "../../utils/playSound";
 
-import { CC_PLAYSOUND_MINUTES, CC_TRADE_HANDLER } from "../../config/params";
+import { CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -70,7 +70,7 @@ predictEmitter
     .operator(Operator.skip(1))
     .connect((trend: "upward" | "downward") => {
         if (trend === "upward") {
-            doTrade(1.01, 100);
+            doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
         }
     });
 

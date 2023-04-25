@@ -7,7 +7,7 @@ import { CC_INPUT_SIZE, CC_TRAIN_WINDOW_SIZE, CC_PRICE_SLOPE_ADJUST, CC_TRAIN_TA
 
 import getTimeLabel from '../../utils/getTimeLabel';
 import percentDiff, { toNeuralValue } from '../../utils/percentDiff';
-import calculateTrend, { filterBullRun } from '../../utils/calculateTrend';
+import calculateTrend, { filterBullRun, filterRevenue } from '../../utils/calculateTrend';
 
 import { netManager, trainManager } from '../schema';
 
@@ -26,6 +26,13 @@ export const trendEmitter = Source.multicast(() =>
 const positiveSetEmitter = Source.multicast<number[][]>(() =>
     trendEmitter
         .filter(({ trend }) => trend === 1)
+        .filter(({ data }) => {
+            const isOk = filterRevenue(data);
+            if (!isOk) {
+                console.log(`raise pattern does not match revenue ${getTimeLabel(new Date())}`);
+            }
+            return isOk;
+        })
         .map(({ data }) => data)
         .flatMap((items) => items)
         .operator(Operator.pair())

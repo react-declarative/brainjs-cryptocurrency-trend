@@ -1,3 +1,6 @@
+import { CC_TRADE_PERCENT } from "../config/params";
+import percentDiff from "./percentDiff";
+
 /**
  * @see https://stackoverflow.com/questions/6195335/linear-regression-in-javascript
  * @description if Slope variable is positive the chart is going upward
@@ -53,6 +56,14 @@ export const filterBullRun = (strides: number[][], trend: 1 | -1) => {
         const { sign } = makeSlope(stride.map((value) => value * 100));
         return sign === trend;
     });
+};
+
+export const filterRevenue = (data: number[]) => {
+    const { getYValue } = makeSlope(data);
+    const trendBegin = getYValue(1);
+    const trendEnd = getYValue(data.length);
+    const diff = 1.0 + (percentDiff(trendBegin, trendEnd) * 0.01);
+    return diff >= CC_TRADE_PERCENT;
 };
 
 export default calculateTrend;
