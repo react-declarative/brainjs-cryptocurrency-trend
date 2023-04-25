@@ -1,4 +1,3 @@
-import { CC_TRADE_PERCENT } from "../config/params";
 import percentDiff from "./percentDiff";
 
 /**
@@ -58,12 +57,12 @@ export const filterBullRun = (strides: number[][], trend: 1 | -1) => {
     });
 };
 
-export const filterRevenue = (data: number[]) => {
+export const calculateRevenue = (data: number[]) => {
     const { getYValue } = makeSlope(data);
     const trendBegin = getYValue(1);
     const trendEnd = getYValue(data.length);
     const diff = 1.0 + (percentDiff(trendBegin, trendEnd) * 0.01);
-    return diff >= CC_TRADE_PERCENT;
+    return diff;
 };
 
 export default calculateTrend;
