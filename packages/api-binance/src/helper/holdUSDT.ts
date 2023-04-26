@@ -36,7 +36,7 @@ export const createHoldUSDT = (binance: Binance) => {
       stepSize = '0.00010000',
       tickSize = '0.01000000',
       minQty = '0.00010000',
-    } = filters.find((filter) => filter.filterType === filterType);
+    } = filters.find((filter) => filter.filterType === filterType) || {};
     return {
       stepSize,
       tickSize,
@@ -104,7 +104,7 @@ export const createHoldUSDT = (binance: Binance) => {
   };
 
   const getBalance = async (coin = 'ETH'): Promise<number> => {
-    const { available = -1 } = (await binance.balance()[coin]) || {};
+    const { available = -1 } = ((await binance.balance())[coin]) || {};
     if (available === -1) {
       throw new Error('holdUSDT balance fetch failed');
     }
