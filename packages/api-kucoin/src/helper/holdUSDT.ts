@@ -152,13 +152,25 @@ export const sendSellQTY = async (
   return sellOrderId || null;
 };
 
+export const getTradeInfo = async (symbol = 'ETH-USDT') => {
+  const marketPrice = await getMarketPrice(symbol);
+  const { priceDecimalPlaces, sizeDecimalPlaces } = await getRoundTickslInfo(
+    symbol,
+  );
+  return {
+    marketPrice,
+    priceDecimalPlaces,
+    sizeDecimalPlaces,
+  };
+};
+
 export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
   if (await hasOpenOrders('ETH-USDT')) {
     return;
   }
 
-  const marketPrice = await getMarketPrice('ETH-USDT');
-  const { priceDecimalPlaces, sizeDecimalPlaces } = await getRoundTickslInfo();
+  const { marketPrice, priceDecimalPlaces, sizeDecimalPlaces } =
+    await getTradeInfo();
   const { maker } = await getTradeFee('ETH-USDT');
   const balanceBefore = await getBalance('ETH');
 
@@ -215,3 +227,8 @@ export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
 (globalThis as any).getTradeFee = getTradeFee;
 (globalThis as any).getMarketPrice = getMarketPrice;
 (globalThis as any).holdUSDT = holdUSDT;
+(globalThis as any).roundTicks = roundTicks;
+(globalThis as any).usdToCoins = usdToCoins;
+(globalThis as any).sendSellQTY = sendSellQTY;
+(globalThis as any).sendBuyUSDT = sendBuyUSDT;
+(globalThis as any).getTradeInfo = getTradeInfo;
