@@ -24,6 +24,10 @@ export class ApiService implements OnModuleInit {
   async onModuleInit() {
     this.binance = new Binance().options({
       ...this.configService.exchangeConfig,
+      ...(!this.configService.globalConfig.shouldTrade && {
+        APIKEY: undefined,
+        APISECRET: undefined,
+      }),
     });
     await this.binance.useServerTime();
     this.holdUSDT = createHoldUSDT(this.binance);
@@ -82,6 +86,6 @@ export class ApiService implements OnModuleInit {
     this.loggerService.log(
       `api-service do_trade sell_percent=${sellPercent} usdt_amount=${usdtAmount}`,
     );
-    // await holdUSDT(parseFloat(sellPercent), parseInt(usdtAmount));
+    await this.holdUSDT(parseFloat(sellPercent), parseInt(usdtAmount));
   }
 }
