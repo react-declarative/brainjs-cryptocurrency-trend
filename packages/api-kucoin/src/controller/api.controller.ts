@@ -6,11 +6,15 @@ import { DoTradeDto } from 'src/model/do_trade.dto';
 import { ResponseDto, createError, createOk } from 'src/model/response.dto';
 
 import { ApiService } from 'src/service/api.service';
+import { ConfigService } from 'src/service/config.service';
 
 @ApiTags('BaseCompetition CRUD')
 @Controller('/api/v1/do_trade')
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @ApiOperation({
     description: 'Do trade',
@@ -26,7 +30,12 @@ export class ApiController {
   @Post()
   public async doTrade(@Body() tradeDto: DoTradeDto): Promise<ResponseDto> {
     try {
-      await this.apiService.doTrade(tradeDto.sellPercent, tradeDto.usdtAmount);
+      if (this.configService.globalConfig.shouldTrade) {
+        await this.apiService.doTrade(
+          tradeDto.sellPercent,
+          tradeDto.usdtAmount,
+        );
+      }
       return createOk();
     } catch (error) {
       const { message } = serializeError(error);

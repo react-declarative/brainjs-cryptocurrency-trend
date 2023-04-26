@@ -6,6 +6,8 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { LoggerService } from './logger.service';
 
+import { holdUSDT } from '../helper/holdUSDT';
+
 const WS_OPEN = 1;
 const WS_CLOSED = 3;
 
@@ -98,9 +100,10 @@ export class ApiService implements OnModuleInit {
     });
   }
 
-  doTrade(sellPercent: string, usdtAmount: string) {
+  async doTrade(sellPercent: string, usdtAmount: string) {
     this.loggerService.log(
       `api-service do_trade sell_percent=${sellPercent} usdt_amount=${usdtAmount}`,
     );
+    await holdUSDT(parseFloat(sellPercent), parseInt(usdtAmount));
   }
 }

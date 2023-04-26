@@ -4,19 +4,20 @@ import { Injectable } from '@nestjs/common';
 export class ConfigService {
   get globalConfig() {
     return {
-      symbol: 'ETH-USDT',
       host: process.env.API_HOST || '0.0.0.0',
       port: +process.env.API_PORT || 8080,
+      shouldTrade: !!+process.env.SHOULD_TRADE || false,
     };
   }
 
   get exchangeConfig() {
     return {
-      baseUrl: 'https://openapi-sandbox.kucoin.cc',
+      baseUrl: process.env.API_BASE_URL || 'https://openapi-sandbox.kucoin.com',
       apiAuth: {
-        key: '',
-        secret: '',
-        passphrase: '',
+        key: process.env.API_KEY || '64459234ba02b40001f97b0a',
+        secret:
+          process.env.API_SECRET || '54f3b54a-1680-4e8b-bed5-9034c8bfed1e',
+        passphrase: process.env.API_PASSPHRASE || '123456',
       },
       authVersion: 2,
     };
