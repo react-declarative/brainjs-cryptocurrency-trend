@@ -65,8 +65,8 @@ export const createHoldUSDT = (binance: Binance) => {
     };
   };
 
-  const getMarketPrice = async (COIN = 'ETHUSDT'): Promise<number> => {
-    const ticks = await binance.candlesticks(COIN, '1m');
+  const getMarketPrice = async (symbol = 'ETHUSDT'): Promise<number> => {
+    const ticks = await binance.candlesticks(symbol, '1m');
     const candles = ticks.map(
       ([
         time,
@@ -99,7 +99,7 @@ export const createHoldUSDT = (binance: Binance) => {
     const sorted = candles.sort(({ time: a }, { time: b }) => b - a);
     const [lastTick] = sorted;
     const { high } = lastTick;
-    const binancePrice = await getBinancePrice(COIN);
+    const binancePrice = await getBinancePrice(symbol);
     return Math.min(Number(binancePrice), Number(high));
   };
 
