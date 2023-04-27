@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from "dayjs";
 import getTimeLabel from "../../utils/getTimeLabel";
 import playSound, { Sound } from "../../utils/playSound";
 
-import { CC_FREEZE_MINUTES, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
+import { CC_FREEZE_SECONDS, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -76,7 +76,7 @@ predictEmitter
         }
     })
     .filter(() => {
-        if (lastDownward && dayjs().diff(lastDownward, 'minute') <= CC_FREEZE_MINUTES) {
+        if (lastDownward && dayjs().diff(lastDownward, 'second') <= CC_FREEZE_SECONDS) {
             return false;
         }
         return true;
