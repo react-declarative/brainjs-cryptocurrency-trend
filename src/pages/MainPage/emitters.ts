@@ -77,6 +77,7 @@ predictEmitter
     })
     .filter(() => {
         if (lastDownward && dayjs().diff(lastDownward, 'second') <= CC_FREEZE_SECONDS) {
+            console.log(`ambiguously rise prediction skipped ${getTimeLabel(new Date())}`)
             return false;
         }
         return true;
