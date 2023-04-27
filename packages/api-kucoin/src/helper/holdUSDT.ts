@@ -164,7 +164,7 @@ export const getTradeInfo = async (symbol = 'ETH-USDT') => {
   };
 };
 
-export const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
+export const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
   if (await hasOpenOrders('ETH-USDT')) {
     return;
   }

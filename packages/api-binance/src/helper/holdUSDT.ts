@@ -1,4 +1,4 @@
-import Binance from 'node-binance-api';
+import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
 export const createHoldUSDT = (binance: Binance) => {
   const roundTicks = (price: number, tickSize = '0.00010000') => {
@@ -24,7 +24,7 @@ export const createHoldUSDT = (binance: Binance) => {
 
   const getInfo = async (
     symbol = 'ETHUSDT',
-    filterType = 'LOT_SIZE',
+    filterType: SymbolFilterType = SymbolFilterType.LOT_SIZE,
   ): Promise<{
     stepSize?: string;
     tickSize?: string;
@@ -36,7 +36,8 @@ export const createHoldUSDT = (binance: Binance) => {
       stepSize = '0.00010000',
       tickSize = '0.01000000',
       minQty = '0.00010000',
-    } = filters.find((filter) => filter.filterType === filterType) || {};
+    } = (filters.find((filter) => filter.filterType === filterType) as any) ||
+    {};
     return {
       stepSize,
       tickSize,
@@ -45,9 +46,9 @@ export const createHoldUSDT = (binance: Binance) => {
   };
 
   const getBinancePrice = async (symbol = 'ETHUSDT'): Promise<number> => {
-    const prices = await binance.prices(symbol);
+    const prices = await binance.prices({ symbol });
     const price = prices[symbol];
-    return price;
+    return parseFloat(price);
   };
 
   const getTransactionFee = async (
@@ -56,46 +57,22 @@ export const createHoldUSDT = (binance: Binance) => {
     maker: number;
     taker: number;
   }> => {
-    const { tradeFee } = await binance.tradeFee();
-    const { makerCommission = '0.001', takerCommission = '0.001' } =
-      tradeFee.find((fee) => fee.symbol === symbol);
+    const tradeFee = await binance.tradeFee();
+    const { makerCommission = 0.001, takerCommission = 0.001 } = tradeFee.find(
+      (fee) => fee.symbol === symbol,
+    );
     return {
-      maker: parseFloat(makerCommission),
-      taker: parseFloat(takerCommission),
+      maker: makerCommission,
+      taker: takerCommission,
     };
   };
 
   const getMarketPrice = async (symbol = 'ETHUSDT'): Promise<number> => {
-    const ticks = await binance.candlesticks(symbol, '1m');
-    const candles = ticks.map(
-      ([
-        time,
-        open,
-        high,
-        low,
-        close,
-        volume,
-        closeTime,
-        assetVolume,
-        trades,
-        buyBaseVolume,
-        buyAssetVolume,
-        ignored,
-      ]) => ({
-        time,
-        open,
-        high,
-        low,
-        close,
-        volume,
-        closeTime,
-        assetVolume,
-        trades,
-        buyBaseVolume,
-        buyAssetVolume,
-        ignored,
-      }),
-    );
+    const ticks = await binance.candles({
+      symbol,
+      interval: '1m',
+    });
+    const candles = ticks.map(({ high, closeTime: time }) => ({ high, time }));
     const sorted = candles.sort(({ time: a }, { time: b }) => b - a);
     const [lastTick] = sorted;
     const { high } = lastTick;
@@ -104,19 +81,23 @@ export const createHoldUSDT = (binance: Binance) => {
   };
 
   const getBalance = async (coin = 'ETH'): Promise<number> => {
-    const { available = -1 } = ((await binance.balance())[coin]) || {};
-    if (available === -1) {
+    const account = await binance.accountInfo();
+    const { free } = account.balances.find(({ asset }) => asset === coin) || {};
+    if (!free) {
       throw new Error('holdUSDT balance fetch failed');
     }
-    return available;
+    return parseFloat(free);
   };
 
   const getTradeInfo = async (symbol = 'ETHUSDT') => {
     const marketPrice = await getMarketPrice(symbol);
-    const { stepSize: sizeDecimalPlaces } = await getInfo(symbol, 'LOT_SIZE');
+    const { stepSize: sizeDecimalPlaces } = await getInfo(
+      symbol,
+      SymbolFilterType.LOT_SIZE,
+    );
     const { tickSize: priceDecimalPlaces } = await getInfo(
       symbol,
-      'PRICE_FILTER',
+      SymbolFilterType.PRICE_FILTER,
     );
     return {
       marketPrice,
@@ -126,20 +107,27 @@ export const createHoldUSDT = (binance: Binance) => {
   };
 
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
-    const totalOrders = await binance.openOrders(symbol);
+    const totalOrders = await binance.openOrders({ symbol });
     return !!totalOrders.length;
   };
 
-  const isOrderFullfilled = async (orderId: string) => {
-    const { status } = await binance.orderStatus('ETHUSDT', orderId);
+  const isOrderFullfilled = async (symbol = 'ETHUSDT', orderId: number) => {
+    const { status } = await binance.getOrder({
+      symbol,
+      orderId,
+    });
     return status === 'FILLED';
   };
 
-  const cancelOrder = async (orderId: string) => {
-    await binance.cancel('ETHUSDT', orderId);
+  const cancelOrder = async (symbol = 'ETHUSDT', orderId: number) => {
+    await binance.cancelOrder({
+      orderId,
+      symbol,
+    });
   };
 
   const sendBuyUSDT = async (
+    symbol = 'ETHUSDT',
     usdtAmount: number,
     {
       marketPrice,
@@ -150,19 +138,21 @@ export const createHoldUSDT = (binance: Binance) => {
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
     },
-  ): Promise<string | null> => {
+  ): Promise<number | null> => {
     const fastPrice = marketPrice * 1.001;
     const size = usdToCoins(usdtAmount, fastPrice);
-    const { orderId: buyOrderId = '' } = await binance.order(
-      'BUY',
-      'ETHUSDT',
-      roundTicks(size, sizeDecimalPlaces),
-      roundTicks(fastPrice, priceDecimalPlaces),
-    );
+    const { orderId: buyOrderId } = await binance.order({
+      type: OrderType.LIMIT,
+      side: 'BUY',
+      symbol,
+      quantity: roundTicks(size, sizeDecimalPlaces),
+      price: roundTicks(fastPrice, priceDecimalPlaces),
+    });
     return buyOrderId || null;
   };
 
   const sendSellQTY = async (
+    symbol = 'ETHUSDT',
     ethQuantity: number,
     sellPercent: number,
     {
@@ -174,18 +164,19 @@ export const createHoldUSDT = (binance: Binance) => {
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
     },
-  ): Promise<string | null> => {
+  ): Promise<number | null> => {
     const winPrice = marketPrice * sellPercent;
-    const { orderId: sellOrderId = '' } = await binance.order(
-      'SELL',
-      'ETHUSDT',
-      roundTicks(ethQuantity, sizeDecimalPlaces),
-      roundTicks(winPrice, priceDecimalPlaces),
-    );
+    const { orderId: sellOrderId } = await binance.order({
+      type: OrderType.LIMIT,
+      side: 'SELL',
+      symbol,
+      quantity: roundTicks(ethQuantity, sizeDecimalPlaces),
+      price: roundTicks(winPrice, priceDecimalPlaces),
+    });
     return sellOrderId || null;
   };
 
-  const holdUSDT = async (sellPercent: number, usdtAmount: number) => {
+  const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
     if (await hasOpenOrders('ETHUSDT')) {
       return;
     }
@@ -195,7 +186,7 @@ export const createHoldUSDT = (binance: Binance) => {
     const { maker } = await getTransactionFee('ETHUSDT');
     const balanceBefore = await getBalance('ETH');
 
-    const buyOrderId = await sendBuyUSDT(usdtAmount, {
+    const buyOrderId = await sendBuyUSDT('ETHUSDT', usdtAmount, {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
@@ -208,7 +199,7 @@ export const createHoldUSDT = (binance: Binance) => {
     let isOk = false;
 
     for (let i = 0; i !== 10; i++) {
-      if (await isOrderFullfilled(buyOrderId)) {
+      if (await isOrderFullfilled('ETHUSDT', buyOrderId)) {
         isOk = true;
         break;
       }
@@ -216,7 +207,7 @@ export const createHoldUSDT = (binance: Binance) => {
     }
 
     if (!isOk) {
-      await cancelOrder(buyOrderId);
+      await cancelOrder('ETHUSDT', buyOrderId);
       throw new Error('holdUSDT sendBuyUSDT order not resolved');
     }
 
@@ -225,7 +216,7 @@ export const createHoldUSDT = (binance: Binance) => {
     let ethQuantity = balanceAfter - balanceBefore;
     ethQuantity -= ethQuantity * maker;
 
-    const sellOrderId = await sendSellQTY(ethQuantity, sellPercent, {
+    const sellOrderId = await sendSellQTY('ETHUSDT', ethQuantity, sellPercent, {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
@@ -236,7 +227,7 @@ export const createHoldUSDT = (binance: Binance) => {
     }
 
     for (let i = 0; i !== 10; i++) {
-      if (await isOrderFullfilled(sellOrderId)) {
+      if (await isOrderFullfilled('ETHUSDT', sellOrderId)) {
         break;
       }
       await sleep();
