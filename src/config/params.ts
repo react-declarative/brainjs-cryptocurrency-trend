@@ -12,4 +12,4 @@ export const CC_TRADE_AMOUNT = 100;
 export const CC_TRADE_PERCENT = 1.01;
 
 export const CC_PLAYSOUND_MINUTES = 15;
-export const CC_FREEZE_SECONDS = 60;
+export const CC_FREEZE_SECONDS = 90;
