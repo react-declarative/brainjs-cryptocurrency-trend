@@ -1,11 +1,11 @@
 import { Subject, Source, Operator, fetchApi, singlerun, roundTicks } from "react-declarative";
 
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 import playSound, { Sound } from "../../utils/playSound";
 
-import { CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
+import { CC_FREEZE_MINUTES, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -66,8 +66,21 @@ const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     }
 });
 
+let lastDownward: Dayjs | null = null;
+
 predictEmitter
     .operator(Operator.skip(1))
+    .tap((trend) => {
+        if (trend === "downward") {
+            lastDownward = dayjs();
+        }
+    })
+    .filter(() => {
+        if (lastDownward && dayjs().diff(lastDownward, 'minute') <= CC_FREEZE_MINUTES) {
+            return false;
+        }
+        return true;
+    })
     .connect((trend: "upward" | "downward") => {
         if (trend === "upward") {
             doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
