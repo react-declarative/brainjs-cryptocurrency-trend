@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import * as BINANCE from 'node-binance-api';
+import Binance from 'binance-api-node';
 import { Observable, Subject, interval, map, switchMap } from 'rxjs';
 
 import { ConfigService } from './config.service';
@@ -9,11 +9,9 @@ import { createHoldUSDT } from 'src/helper/holdUSDT';
 
 const CANDLE_REPEAT_INTERVAL = 150;
 
-const Binance = BINANCE as any;
-
 @Injectable()
 export class ApiService implements OnModuleInit {
-  private binance: typeof Binance = null as never;
+  private binance: ReturnType<typeof Binance> = null as never;
   private holdUSDT: ReturnType<typeof createHoldUSDT>;
 
   constructor(
@@ -22,14 +20,13 @@ export class ApiService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.binance = new Binance().options({
+    this.binance = Binance({
       ...this.configService.exchangeConfig,
       ...(!this.configService.globalConfig.shouldTrade && {
-        APIKEY: undefined,
-        APISECRET: undefined,
+        apiKey: undefined,
+        apiSecret: undefined,
       }),
     });
-    await this.binance.useServerTime();
     this.holdUSDT = createHoldUSDT(this.binance);
   }
 
@@ -37,31 +34,11 @@ export class ApiService implements OnModuleInit {
     return new Observable((subscriber) => {
       const repeatEmitter = new Subject<number>();
 
-      const disposeCandle = this.binance.websockets.candlesticks(
+      const disposeCandle = this.binance.ws.candles(
         'ETHUSDT',
         '1m',
-        (trade) => {
-          const { k: ticks } = trade;
-          const candle = {
-            eventType: trade.e,
-            eventTime: trade.E,
-            symbol: trade.s,
-            ticks: {
-              open: ticks.o,
-              high: ticks.h,
-              low: ticks.l,
-              close: ticks.c,
-              volume: ticks.v,
-              trades: ticks.n,
-              interval: ticks.i,
-              isFinal: ticks.x,
-              quoteVolume: ticks.q,
-              buyVolume: ticks.V,
-              sellVolume: ticks.v - ticks.V,
-              quoteBuyVolume: ticks.Q,
-            },
-          };
-          const price = candle.ticks.high;
+        (candle) => {
+          const price = parseFloat(candle.high);
           repeatEmitter.next(price);
           subscriber.next(price);
         },
@@ -76,7 +53,7 @@ export class ApiService implements OnModuleInit {
         .subscribe((val) => subscriber.next(val));
 
       return () => {
-        this.binance.websockets.terminate(disposeCandle);
+        disposeCandle();
         disposeRepeat.unsubscribe();
       };
     });

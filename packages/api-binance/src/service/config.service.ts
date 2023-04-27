@@ -12,14 +12,13 @@ export class ConfigService {
 
   get exchangeConfig() {
     return {
-      APIKEY:
+      apiKey:
         process.env.API_KEY ||
         '83jBpt8ItE5GKJjxJQ51WafkNNUEPgBRCZFw2emWpWOwZKxHIbNkH6ue9OhHiw1r',
-      APISECRET:
+      apiSecret:
         process.env.API_SECRET ||
         'iYno7Ja6pywGuuNPf578raD0mNTatr7yYl4IrRweJbyAm6PS32mtacy4SwxXT1Jn',
       useServerTime: true,
-      recvWindow: 60000,
     };
   }
 }
