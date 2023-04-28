@@ -12,6 +12,7 @@ import { AppModule } from './app.module';
 
 import { candle } from './middleware/candle.middleware';
 import { swagger } from './middleware/swagger.middleware';
+import { informer } from './middleware/informer.middleware';
 
 import { listen } from './utils/nest-listen.util';
 import { ioc } from './utils/nest-ioc.util';
@@ -25,6 +26,7 @@ const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   candle(app, httpServer);
+  informer(app);
   swagger(app);
 
   ioc(app);

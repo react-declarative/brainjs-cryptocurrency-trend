@@ -2,6 +2,13 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ConfigService {
+  get informerConfig() {
+    return {
+      host: process.env.INFORMER_HOST || '127.0.0.1',
+      port: +process.env.INFORMER_PORT || 1337,
+    };
+  }
+
   get globalConfig() {
     return {
       staticPath: process.env.STATIC_PATH || '',
