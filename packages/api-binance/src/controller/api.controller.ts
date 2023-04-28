@@ -7,6 +7,7 @@ import { ResponseDto, createError, createOk } from 'src/model/response.dto';
 
 import { ApiService } from 'src/service/api.service';
 import { ConfigService } from 'src/service/config.service';
+import { LoggerService } from 'src/service/logger.service';
 
 @ApiTags('BaseCompetition CRUD')
 @Controller('/api/v1/do_trade')
@@ -14,6 +15,7 @@ export class ApiController {
   constructor(
     private readonly apiService: ApiService,
     private readonly configService: ConfigService,
+    private readonly loggerService: LoggerService,
   ) {}
 
   @ApiOperation({
@@ -39,6 +41,7 @@ export class ApiController {
       return createOk();
     } catch (error) {
       const { message } = serializeError(error);
+      this.loggerService.log(message);
       return createError(message);
     }
   }

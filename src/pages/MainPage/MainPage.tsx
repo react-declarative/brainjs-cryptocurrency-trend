@@ -20,7 +20,7 @@ import { predictEmitter } from "./emitters";
 
 import useInformer from "../../hooks/useInformer";
 
-import { CC_MAX_TRAIN_ERROR } from "../../config/params";
+import { CC_MAX_TRAIN_ERROR, CC_NET_TICK } from "../../config/params";
 
 import history from "../../history";
 
@@ -111,7 +111,7 @@ export const MainPage = () => {
             predictEmitter.next(result);
             prevUpward = upward;
             prevDownward = downward;
-            await sleep(5_000);
+            await sleep(CC_NET_TICK);
           }
         };
 

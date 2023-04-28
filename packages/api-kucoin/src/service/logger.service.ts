@@ -1,27 +1,60 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { LoggerService as BaseLoggerService } from '@nestjs/common';
+import { Subject, Subscription, concatMap } from 'rxjs';
+import { appendFile } from 'fs/promises';
 
 const logger = new Logger('nestjs');
 
 @Injectable()
-export class LoggerService implements BaseLoggerService {
-  log(message: any, ...optionalParams: any[]) {
-    logger.log(message, ...optionalParams);
+export class LoggerService
+  implements BaseLoggerService, OnModuleInit, OnModuleDestroy
+{
+  private dataSubject = new Subject<object>();
+  private dataWriter: Subscription;
+
+  onModuleInit() {
+    this.dataWriter = this.dataSubject
+      .pipe(
+        concatMap(async (data) => {
+          await appendFile('./log.log', JSON.stringify(data, null, 2));
+        }),
+      )
+      .subscribe(() => logger.log('log written'));
   }
 
-  error(message: any, ...optionalParams: any[]) {
-    logger.error(message, ...optionalParams);
+  onModuleDestroy() {
+    if (this.dataWriter) {
+      this.dataWriter.unsubscribe();
+    }
   }
 
-  warn(message: any, ...optionalParams: any[]) {
-    logger.warn(message, ...optionalParams);
+  log(message: any, ...params: any[]) {
+    this.dataSubject.next({ message, params });
+    logger.log(message, ...params);
   }
 
-  debug(message: any, ...optionalParams: any[]) {
-    logger.debug(message, ...optionalParams);
+  error(message: any, ...params: any[]) {
+    this.dataSubject.next({ message, params });
+    logger.error(message, ...params);
   }
 
-  verbose(message: any, ...optionalParams: any[]) {
-    logger.verbose(message, ...optionalParams);
+  warn(message: any, ...params: any[]) {
+    this.dataSubject.next({ message, params });
+    logger.warn(message, ...params);
+  }
+
+  debug(message: any, ...params: any[]) {
+    this.dataSubject.next({ message, params });
+    logger.debug(message, ...params);
+  }
+
+  verbose(message: any, ...params: any[]) {
+    this.dataSubject.next({ message, params });
+    logger.verbose(message, ...params);
   }
 }
