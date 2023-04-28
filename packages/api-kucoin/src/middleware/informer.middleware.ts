@@ -7,10 +7,7 @@ import { ConfigService } from 'src/service/config.service';
 export const informer = (nest: INestApplication) => {
   const configService = nest.get<ConfigService>(ConfigService);
 
-  const informerUrl = new URL(
-    '/api/v1/do_inform',
-    `http://${configService.informerConfig.host}:${configService.informerConfig.port}`,
-  );
+  const informerUrl = `http://${configService.informerConfig.host}:${configService.informerConfig.port}`;
 
   nest.use(
     '/api/v1/do_inform',

@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from "dayjs";
 import getTimeLabel from "../../utils/getTimeLabel";
 import playSound, { Sound } from "../../utils/playSound";
 
-import { CC_FREEZE_SECONDS, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
+import { CC_FREEZE_SECONDS, CC_INFORM_HANDLER, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -66,25 +66,43 @@ const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     }
 });
 
-let lastDownward: Dayjs | null = null;
+const tradeEmitter = Source.multicast(() => {
+    let lastDownward: Dayjs | null = null;
+    return predictEmitter
+        .operator(Operator.skip(1))
+        .tap((trend) => {
+            if (trend === "downward") {
+                lastDownward = dayjs();
+            }
+        })
+        .filter(() => {
+            if (lastDownward && dayjs().diff(lastDownward, 'second') <= CC_FREEZE_SECONDS) {
+                console.log(`ambiguously rise prediction skipped ${getTimeLabel(new Date())}`)
+                return false;
+            }
+            return true;
+        })
+});
 
-predictEmitter
-    .operator(Operator.skip(1))
-    .tap((trend) => {
-        if (trend === "downward") {
-            lastDownward = dayjs();
-        }
-    })
-    .filter(() => {
-        if (lastDownward && dayjs().diff(lastDownward, 'second') <= CC_FREEZE_SECONDS) {
-            console.log(`ambiguously rise prediction skipped ${getTimeLabel(new Date())}`)
-            return false;
-        }
-        return true;
-    })
+tradeEmitter
     .connect((trend: "upward" | "downward") => {
         if (trend === "upward") {
             doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
+        }
+    });
+
+tradeEmitter
+    .connect(async (trend) => {
+        try {
+            await fetchApi(new URL(CC_INFORM_HANDLER, window.location.origin), {
+                method: 'POST',
+                body: JSON.stringify({
+                    symbol: 'ETHUSDT',
+                    trend,
+                }, null, 2),
+            });
+        } catch {
+            console.log(`telegram inform skipped ${getTimeLabel(new Date())}`);
         }
     });
 
