@@ -4,8 +4,9 @@ import { Injectable } from '@nestjs/common';
 export class ConfigService {
   get globalConfig() {
     return {
-      host: process.env.API_HOST || '0.0.0.0',
-      port: +process.env.API_PORT || 8080,
+      staticPath: process.env.STATIC_PATH || '',
+      host: process.env.APP_HOST || '0.0.0.0',
+      port: +process.env.APP_PORT || 8080,
       shouldTrade: !!+process.env.SHOULD_TRADE || false,
     };
   }

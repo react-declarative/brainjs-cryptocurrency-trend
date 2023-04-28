@@ -9,8 +9,15 @@ import { LoggerService } from './service/logger.service';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), '..', '..', 'build'),
+    ServeStaticModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => [
+        ...(configService.globalConfig.staticPath && [
+          { rootPath: configService.globalConfig.staticPath },
+        ]),
+        { rootPath: join(process.cwd(), '..', '..', 'build') },
+      ],
+      extraProviders: [ConfigService],
+      inject: [ConfigService],
     }),
   ],
   controllers: [ApiController],
