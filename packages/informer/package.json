@@ -1,0 +1,20 @@
+{
+  "name": "informer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:debug": "node --inspect index.js",
+    "prod": "pm2 start index.js --exp-backoff-restart-delay=100"
+  },
+  "dependencies": {
+    "body-parser": "1.20.2",
+    "dotenv": "16.0.3",
+    "express": "4.18.2",
+    "serialize-error": "8.1.0",
+    "telegraf": "4.3.0"
+  },
+  "devDependencies": {
+    "pm2": "5.1.0"
+  }
+}
