@@ -75,6 +75,9 @@ const doNotify = singlerun(async (trend) => {
                 symbol: 'ETHUSDT',
                 trend,
             }, null, 2),
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
     } catch (error) {
         console.log(`telegram inform skipped ${getTimeLabel(new Date())}`, { error });
