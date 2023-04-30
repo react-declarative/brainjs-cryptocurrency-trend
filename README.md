@@ -8,26 +8,26 @@
 
 **1. Start this app**
 
-> Run frontend
+> Build
 
 ```bash
-npm install
-npm run start:client
+sh ./scripts/build.sh
 ```
 
-> Run backend
+> Run
 
 ```bash
-cd ./packages/api-kucoin
-npm install
-npm start
+npx open-cli http://localhost:8080
+npm run start:binance
 ```
 
 **2. Configure the neural network. If you can't just press save button, default config is good enough**
 
 **3. Wait for whales patterns interception (will take around 10 minutes or more). Open Chrome Dev Tools for detailed log**
 
-**4. Enjoy!**
+**4. (Optional) Start Telegram informer (./packages/informer)**
+
+**5. Enjoy!**
 
 ## How it is made
 

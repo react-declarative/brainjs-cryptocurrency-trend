@@ -23,10 +23,10 @@
     "uuid": "9.0.0"
   },
   "scripts": {
-    "start:client": "react-scripts start",
-    "start:kucoin": "cd ./packages/api-kucoin && npm start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
-    "prod": "sh ./scripts/prod.sh"
+    "start:kucoin": "cd ./packages/api-kucoin && npm start",
+    "start:binance": "cd ./packages/api-binance && npm start"
   },
   "eslintConfig": {
     "extends": [
