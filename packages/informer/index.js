@@ -25,7 +25,7 @@ app.post('/api/v1/do_inform', (req, res, next) => {
 
     const {
         symbol = 'ETHUSDT',
-        trend = 'upward',
+        trend,
     } = req.body;
 
     if (trend === "upward") {
@@ -54,7 +54,7 @@ bot.on('message', (ctx) => {
 bot.launch()
     .then(() => app.listen(INFORMER_PORT, INFORMER_HOST))
     .then(() => {
-        console.log(`informet started on port ${INFORMER_PORT}`)
+        console.log(`informer started on port ${INFORMER_PORT}`)
     });
 
 process.once('uncaughtException', function (err) {
