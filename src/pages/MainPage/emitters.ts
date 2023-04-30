@@ -35,7 +35,7 @@ soundEmitter.connect((stamp) => {
 });
 
 /**
- * TODO: implement
+ * INFO: implementation
  *  - handler which buys crypto with limit order (price CANDLE_HIGH_PRICE + 0.000001) and makes sell limit order (price AVERAGE_BUY_PRICE + 1%)
  *      1. does nothing if have pending request (avoid duplicated requests)
  *      2. does nothing if have unresolved order (opened LIMIT_SELL or opened LIMIT_BUY with incoming LIMIT_SELL)
@@ -66,6 +66,21 @@ const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
     }
 });
 
+
+const doNotify = singlerun(async (trend) => {
+    try {
+        await fetchApi(new URL(CC_INFORM_HANDLER, window.location.origin), {
+            method: 'POST',
+            body: JSON.stringify({
+                symbol: 'ETHUSDT',
+                trend,
+            }, null, 2),
+        });
+    } catch (error) {
+        console.log(`telegram inform skipped ${getTimeLabel(new Date())}`, { error });
+    }
+});
+
 const tradeEmitter = Source.multicast(() => {
     let lastDownward: Dayjs | null = null;
     return predictEmitter
@@ -85,26 +100,14 @@ const tradeEmitter = Source.multicast(() => {
 });
 
 tradeEmitter
-    .connect((trend: "upward" | "downward") => {
-        if (trend === "upward") {
-            doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
-        }
-    });
+    .filter((trend) => trend === "upward")
+    .connect(() => doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT));
 
-tradeEmitter
-    .connect(async (trend) => {
-        try {
-            await fetchApi(new URL(CC_INFORM_HANDLER, window.location.origin), {
-                method: 'POST',
-                body: JSON.stringify({
-                    symbol: 'ETHUSDT',
-                    trend,
-                }, null, 2),
-            });
-        } catch {
-            console.log(`telegram inform skipped ${getTimeLabel(new Date())}`);
-        }
-    });
+Source.merge([
+    tradeEmitter.filter((trend) => trend === "upward"),
+    predictEmitter.filter((trend) => trend === "downward"),
+]).connect(doNotify);
 
 (window as any).predictEmitter = predictEmitter;
+(window as any).tradeEmitter = tradeEmitter;
 (window as any).errorSubject = errorSubject;
