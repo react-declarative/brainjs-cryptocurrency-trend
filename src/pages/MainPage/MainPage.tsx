@@ -59,11 +59,12 @@ const options = [
 ];
 
 const getPrediction = async (net: INet): Promise<[number, number]> => {
+  console.log(`net predict input begin ${getTimeLabel(new Date())}`);
   const netInput = await netInputEmitter.toPromise();
-  console.log(`net-predict begin ${getTimeLabel(new Date())}`);
-  console.time('net-predict');
+  console.log(`net predict run begin ${getTimeLabel(new Date())}`);
+  console.time('net-run');
   const [upward = 0, downward = 0] = Object.values(net.run(netInput));
-  console.timeEnd('net-predict');
+  console.timeEnd('net-run');
   return [upward, downward] as [number, number];
 };
 
