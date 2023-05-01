@@ -126,6 +126,10 @@ export const MainPage = () => {
     []
   );
 
+  useEffect(() => netInputEmitter.connect(() => {
+    console.log(`netInputEmitter tick ${getTimeLabel(new Date())}`);
+  }), []);
+
   const handleAction = (action: string) => {
     if (action === "export-net") {
       const func = NeuralNetwork.prototype.toFunction;

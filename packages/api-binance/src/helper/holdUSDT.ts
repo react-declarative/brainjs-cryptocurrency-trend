@@ -195,6 +195,10 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       return;
     }
 
+    if ((await getBalance('USDT')) <= usdtAmount * 1.03) {
+      return;
+    }
+
     const { marketPrice, priceDecimalPlaces, sizeDecimalPlaces } =
       await getTradeInfo('ETHUSDT');
     const { maker } = await getTransactionFee('ETHUSDT');
