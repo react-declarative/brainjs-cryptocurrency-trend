@@ -1,5 +1,5 @@
 import { LoggerService } from '@nestjs/common';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
