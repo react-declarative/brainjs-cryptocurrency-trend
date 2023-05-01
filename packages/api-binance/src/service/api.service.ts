@@ -12,7 +12,9 @@ const CANDLE_REPEAT_INTERVAL = 150;
 @Injectable()
 export class ApiService implements OnModuleInit {
   private binance: ReturnType<typeof Binance> = null as never;
-  private holdUSDT: ReturnType<typeof createHoldUSDT>;
+
+  private holdUSDT: ReturnType<typeof createHoldUSDT>['holdUSDT'];
+  private ignoreAllOrders: ReturnType<typeof createHoldUSDT>['ignoreAllOrders'];
 
   constructor(
     private readonly configService: ConfigService,
@@ -27,7 +29,12 @@ export class ApiService implements OnModuleInit {
         apiSecret: undefined,
       }),
     });
-    this.holdUSDT = createHoldUSDT(this.binance, this.loggerService);
+    const { holdUSDT, ignoreAllOrders } = createHoldUSDT(
+      this.binance,
+      this.loggerService,
+    );
+    this.holdUSDT = holdUSDT;
+    this.ignoreAllOrders = ignoreAllOrders;
   }
 
   getCandleEmitter() {
@@ -64,5 +71,10 @@ export class ApiService implements OnModuleInit {
       `api-service do_trade sell_percent=${sellPercent} usdt_amount=${usdtAmount}`,
     );
     await this.holdUSDT(parseFloat(sellPercent), parseInt(usdtAmount));
+  }
+
+  async doRollback() {
+    this.loggerService.log(`api-service do_rollback`);
+    await this.ignoreAllOrders();
   }
 }

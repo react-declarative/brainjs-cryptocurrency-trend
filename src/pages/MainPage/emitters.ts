@@ -1,15 +1,15 @@
-import { Subject, Source, Operator, fetchApi, singlerun, roundTicks } from "react-declarative";
+import { Subject, Source, Operator, singlerun } from "react-declarative";
 
 import dayjs, { Dayjs } from "dayjs";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 import playSound, { Sound } from "../../utils/playSound";
 
-import { CC_FREEZE_SECONDS, CC_INFORM_HANDLER, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_HANDLER, CC_TRADE_PERCENT } from "../../config/params";
+import { doNotify, doTrade, doRollback, errorSubject } from "./api";
+
+import { CC_FREEZE_SECONDS, CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_PERCENT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
-
-export const errorSubject = new Subject<"now" | "schedule" | "drop">();
 
 export const soundEmitter = Source.multicast(() =>
     Source.merge([
@@ -34,57 +34,7 @@ soundEmitter.connect((stamp) => {
     }
 });
 
-/**
- * INFO: implementation
- *  - handler which buys crypto with limit order (price CANDLE_HIGH_PRICE + 0.000001) and makes sell limit order (price AVERAGE_BUY_PRICE + 1%)
- *      1. does nothing if have pending request (avoid duplicated requests)
- *      2. does nothing if have unresolved order (opened LIMIT_SELL or opened LIMIT_BUY with incoming LIMIT_SELL)
- */
-const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
-    try {
-        const { status } = await fetchApi(new URL(CC_TRADE_HANDLER, window.location.origin), {
-            method: "POST",
-            body: JSON.stringify({
-                symbol: "ETHUSDT",
-                sellPercent: roundTicks(sellPercent, 6),
-                usdtAmount: usdtAmount.toFixed(0),
-            }, null, 2),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-        console.log(`trade request sended status=${status} ${getTimeLabel(new Date())}`);
-        if (status === "ok") {
-            errorSubject.next("drop");
-        }
-        if (status === "error") {
-            errorSubject.next("schedule");
-        }
-    } catch {
-        console.log(`trade request failed ${getTimeLabel(new Date())}`);
-        errorSubject.next("now");
-    }
-});
-
-
-const doNotify = singlerun(async (trend) => {
-    try {
-        await fetchApi(new URL(CC_INFORM_HANDLER, window.location.origin), {
-            method: 'POST',
-            body: JSON.stringify({
-                symbol: 'ETHUSDT',
-                trend,
-            }, null, 2),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-    } catch (error) {
-        console.log(`telegram inform skipped ${getTimeLabel(new Date())}`, { error });
-    }
-});
-
-const tradeEmitter = Source.multicast(() => {
+const upwardEmitter = Source.multicast(() => {
     let lastDownward: Dayjs | null = null;
     return predictEmitter
         .operator(Operator.skip(1))
@@ -100,16 +50,29 @@ const tradeEmitter = Source.multicast(() => {
             }
             return true;
         })
+        .filter((trend) => trend === "upward")
 });
 
-tradeEmitter
-    .filter((trend) => trend === "upward")
-    .connect(() => doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT));
+const downwardEmitter = Source.multicast(() => predictEmitter
+    .filter((trend) => trend === "downward")
+);
 
-Source.merge([
-    tradeEmitter.filter((trend) => trend === "upward"),
-    predictEmitter.filter((trend) => trend === "downward"),
-]).connect(doNotify);
+const doEmit = singlerun(async (trend) => {
+    doNotify(trend);
+    if (trend === "upward") {
+        await doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
+    }
+    if (trend === "downward") {
+        await doRollback();
+    }
+});
+
+const tradeEmitter = Source.multicast(() => Source.merge([
+    upwardEmitter,
+    downwardEmitter,
+]));
+
+tradeEmitter.connect(doEmit);
 
 (window as any).predictEmitter = predictEmitter;
 (window as any).tradeEmitter = tradeEmitter;

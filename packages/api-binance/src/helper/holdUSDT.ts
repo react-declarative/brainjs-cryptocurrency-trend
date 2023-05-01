@@ -2,6 +2,8 @@ import { LoggerService } from '@nestjs/common';
 import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
+  const IGNORE_ORDERS = new Set<number>();
+
   const roundTicks = (price: number, tickSize = '0.00010000') => {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'decimal',
@@ -108,8 +110,16 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   };
 
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
-    const totalOrders = await binance.openOrders({ symbol });
+    let totalOrders = await binance.openOrders({ symbol });
+    totalOrders = totalOrders.filter(
+      ({ orderId }) => !IGNORE_ORDERS.has(orderId),
+    );
     return !!totalOrders.length;
+  };
+
+  const ignoreAllOrders = async (symbol = 'ETHUSDT') => {
+    const totalOrders = await binance.openOrders({ symbol });
+    totalOrders.forEach(({ orderId }) => IGNORE_ORDERS.add(orderId));
   };
 
   const isOrderFullfilled = async (symbol = 'ETHUSDT', orderId: number) => {
@@ -239,6 +249,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
+  (globalThis as any).ignoreAllOrders = ignoreAllOrders;
   (globalThis as any).getBalance = getBalance;
   (globalThis as any).getTradeFee = getTransactionFee;
   (globalThis as any).getMarketPrice = getMarketPrice;
@@ -249,5 +260,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   (globalThis as any).sendBuyUSDT = sendBuyUSDT;
   (globalThis as any).getTradeInfo = getTradeInfo;
 
-  return holdUSDT;
+  return {
+    holdUSDT,
+    ignoreAllOrders,
+  };
 };
