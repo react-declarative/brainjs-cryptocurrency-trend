@@ -1,6 +1,7 @@
+import { LoggerService } from '@nestjs/common';
 import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
-export const createHoldUSDT = (binance: Binance) => {
+export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   const roundTicks = (price: number, tickSize = '0.00010000') => {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'decimal',
@@ -120,6 +121,7 @@ export const createHoldUSDT = (binance: Binance) => {
   };
 
   const cancelOrder = async (symbol = 'ETHUSDT', orderId: number) => {
+    logger.log(`cancel symbol=${symbol} orderId=${orderId}`);
     await binance.cancelOrder({
       orderId,
       symbol,
@@ -141,6 +143,7 @@ export const createHoldUSDT = (binance: Binance) => {
   ): Promise<number | null> => {
     const fastPrice = marketPrice * 1.001;
     const size = usdToCoins(usdtAmount, fastPrice);
+    logger.log(`buy symbol=${symbol} price=${fastPrice} size=${size}`);
     const { orderId: buyOrderId } = await binance.order({
       type: OrderType.LIMIT,
       side: 'BUY',
@@ -166,6 +169,7 @@ export const createHoldUSDT = (binance: Binance) => {
     },
   ): Promise<number | null> => {
     const winPrice = marketPrice * sellPercent;
+    logger.log(`sell symbol=${symbol} price=${winPrice} size=${ethQuantity}`);
     const { orderId: sellOrderId } = await binance.order({
       type: OrderType.LIMIT,
       side: 'SELL',

@@ -27,7 +27,7 @@ export class ApiService implements OnModuleInit {
         apiSecret: undefined,
       }),
     });
-    this.holdUSDT = createHoldUSDT(this.binance);
+    this.holdUSDT = createHoldUSDT(this.binance, this.loggerService);
   }
 
   getCandleEmitter() {
