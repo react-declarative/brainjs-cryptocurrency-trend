@@ -14,7 +14,9 @@ export class ApiService implements OnModuleInit {
   private binance: ReturnType<typeof Binance> = null as never;
 
   private holdUSDT: ReturnType<typeof createHoldUSDT>['holdUSDT'];
-  private ignoreAllOrders: ReturnType<typeof createHoldUSDT>['ignoreAllOrders'];
+  private ignoreStuckOrders: ReturnType<
+    typeof createHoldUSDT
+  >['ignoreStuckOrders'];
 
   constructor(
     private readonly configService: ConfigService,
@@ -29,12 +31,12 @@ export class ApiService implements OnModuleInit {
         apiSecret: undefined,
       }),
     });
-    const { holdUSDT, ignoreAllOrders } = createHoldUSDT(
+    const { holdUSDT, ignoreStuckOrders } = createHoldUSDT(
       this.binance,
       this.loggerService,
     );
     this.holdUSDT = holdUSDT;
-    this.ignoreAllOrders = ignoreAllOrders;
+    this.ignoreStuckOrders = ignoreStuckOrders;
   }
 
   getCandleEmitter() {
@@ -75,6 +77,6 @@ export class ApiService implements OnModuleInit {
 
   async doRollback() {
     this.loggerService.log(`api-service do_rollback`);
-    await this.ignoreAllOrders();
+    await this.ignoreStuckOrders();
   }
 }

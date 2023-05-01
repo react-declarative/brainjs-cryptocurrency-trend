@@ -1,4 +1,5 @@
 import { LoggerService } from '@nestjs/common';
+import dayjs from 'dayjs';
 import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
@@ -117,9 +118,11 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     return !!totalOrders.length;
   };
 
-  const ignoreAllOrders = async (symbol = 'ETHUSDT') => {
+  const ignoreStuckOrders = async (symbol = 'ETHUSDT') => {
     const totalOrders = await binance.openOrders({ symbol });
-    totalOrders.forEach(({ orderId }) => IGNORE_ORDERS.add(orderId));
+    totalOrders
+      .filter(({ time }) => dayjs().diff(dayjs(time), 'minute') >= 15)
+      .forEach(({ orderId }) => IGNORE_ORDERS.add(orderId));
   };
 
   const isOrderFullfilled = async (symbol = 'ETHUSDT', orderId: number) => {
@@ -253,7 +256,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
-  (globalThis as any).ignoreAllOrders = ignoreAllOrders;
+  (globalThis as any).ignoreStuckOrders = ignoreStuckOrders;
   (globalThis as any).getBalance = getBalance;
   (globalThis as any).getTradeFee = getTransactionFee;
   (globalThis as any).getMarketPrice = getMarketPrice;
@@ -266,6 +269,6 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   return {
     holdUSDT,
-    ignoreAllOrders,
+    ignoreStuckOrders,
   };
 };
