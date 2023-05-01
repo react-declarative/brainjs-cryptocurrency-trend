@@ -60,7 +60,10 @@ const options = [
 
 const getPrediction = async (net: INet): Promise<[number, number]> => {
   const netInput = await netInputEmitter.toPromise();
+  console.log(`net-predict begin ${getTimeLabel(new Date())}`);
+  console.time('net-predict');
   const [upward = 0, downward = 0] = Object.values(net.run(netInput));
+  console.timeEnd('net-predict');
   return [upward, downward] as [number, number];
 };
 

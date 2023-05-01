@@ -20,6 +20,8 @@ import { trendEmitter } from "../../lib/source/netEmitter";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 
+import { CC_LIVENESS_DELAY } from "../../config/params";
+
 import history from "../../history";
 
 interface IChartProps {
@@ -107,7 +109,7 @@ export const Chart = ({ predictEmitter, height, width }: IChartProps) => {
     const disconnectPriceEmitter = priceEmitter
       .operator(Operator.liveness(() => {
         history.push('/error-page');
-      }))
+      }, CC_LIVENESS_DELAY))
       .connect((value) => {
         lastPrice = value;
         priceSeries.update({ value, time: Date.now() as UTCTimestamp });

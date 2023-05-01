@@ -15,4 +15,5 @@ export const CC_TRADE_PERCENT = 1.01;
 
 export const CC_PLAYSOUND_MINUTES = 15;
 export const CC_FREEZE_SECONDS = 30;
+export const CC_LIVENESS_DELAY = 5_000;
 export const CC_NET_TICK = 5_000;
