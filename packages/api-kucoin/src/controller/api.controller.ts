@@ -10,7 +10,7 @@ import { ConfigService } from 'src/service/config.service';
 import { LoggerService } from 'src/service/logger.service';
 
 @ApiTags('BaseCompetition CRUD')
-@Controller('/api/v1/do_trade')
+@Controller('/api/v1')
 export class ApiController {
   constructor(
     private readonly apiService: ApiService,
@@ -27,9 +27,9 @@ export class ApiController {
   })
   @ApiResponse({
     type: ResponseDto,
-    description: 'Order status',
+    description: 'Request status',
   })
-  @Post()
+  @Post('do_trade')
   public async doTrade(@Body() tradeDto: DoTradeDto): Promise<ResponseDto> {
     try {
       if (this.configService.globalConfig.shouldTrade) {
@@ -44,5 +44,17 @@ export class ApiController {
       this.loggerService.log(message);
       return createError(message);
     }
+  }
+
+  @ApiOperation({
+    description: 'Do rollback',
+  })
+  @ApiResponse({
+    type: ResponseDto,
+    description: 'Request status',
+  })
+  @Post('do_rollback')
+  public async doRollback(): Promise<ResponseDto> {
+    return createOk();
   }
 }
