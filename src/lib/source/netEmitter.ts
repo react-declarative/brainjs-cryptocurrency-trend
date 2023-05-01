@@ -89,7 +89,7 @@ export const netTrainsetEmitter = Source.multicast(() => Source
     .tap(([positiveSet, negativeSet]) => console.log(`starting trainment ${getTimeLabel(new Date())}`, { positiveSet, negativeSet }))
 );
 
-export const netEmitter = Source.multicast(() => Source.createCold((next) => {
+export const netEmitter = Source.unicast(() => Source.createCold((next) => {
     const process = async () => {
         const [ positiveSet, negativeSet ] = await netTrainsetEmitter.toPromise();
         const net = new NeuralNetwork({
