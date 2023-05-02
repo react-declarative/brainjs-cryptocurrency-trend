@@ -117,20 +117,13 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
     let totalOrders = await binance.openOrders({ symbol });
-    const myOrders = new Set(PENDING_ORDERS_LIST.map(({ orderId }) => orderId));
+    const activeOrders = PENDING_ORDERS_LIST.filter(
+      ({ stamp }) => dayjs().diff(dayjs(stamp), 'minute') <= 15,
+    );
+    const myOrders = new Set(activeOrders.map(({ orderId }) => orderId));
+    PENDING_ORDERS_LIST = activeOrders;
     totalOrders = totalOrders.filter(({ orderId }) => myOrders.has(orderId));
     return !!totalOrders.length;
-  };
-
-  const ignoreStuckOrders = async (/* symbol = 'ETHUSDT' */) => {
-    const stuckSet = new Set(
-      PENDING_ORDERS_LIST.filter(
-        ({ stamp }) => dayjs().diff(dayjs(stamp), 'minute') >= 15,
-      ).map(({ orderId }) => orderId),
-    );
-    PENDING_ORDERS_LIST = PENDING_ORDERS_LIST.filter(
-      ({ orderId }) => !stuckSet.has(orderId),
-    );
   };
 
   const isOrderFullfilled = async (symbol = 'ETHUSDT', orderId: number) => {
@@ -269,7 +262,6 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
-  (globalThis as any).ignoreStuckOrders = ignoreStuckOrders;
   (globalThis as any).getBalance = getBalance;
   (globalThis as any).getTradeFee = getTransactionFee;
   (globalThis as any).getMarketPrice = getMarketPrice;
@@ -282,6 +274,5 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   return {
     holdUSDT,
-    ignoreStuckOrders,
   };
 };
