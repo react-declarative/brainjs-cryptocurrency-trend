@@ -256,6 +256,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       }
       await sleep();
     }
+
+    logger.log(`holdUSDT pair buyOrderId=${buyOrderId} sellOrderId=${sellOrderId} sellPercent=${sellPercent} usdtAmount=${usdtAmount}`);
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
