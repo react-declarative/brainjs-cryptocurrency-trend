@@ -2,8 +2,13 @@ import { LoggerService } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { Binance, OrderType, SymbolFilterType } from 'binance-api-node';
 
+interface IOrder {
+  orderId: number;
+  stamp: number;
+}
+
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
-  const IGNORE_ORDERS = new Set<number>();
+  let PENDING_ORDERS_LIST: IOrder[] = [];
 
   const roundTicks = (price: number, tickSize = '0.00010000') => {
     const formatter = new Intl.NumberFormat('en-US', {
@@ -112,17 +117,20 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
     let totalOrders = await binance.openOrders({ symbol });
-    totalOrders = totalOrders.filter(
-      ({ orderId }) => !IGNORE_ORDERS.has(orderId),
-    );
+    const myOrders = new Set(PENDING_ORDERS_LIST.map(({ orderId }) => orderId));
+    totalOrders = totalOrders.filter(({ orderId }) => myOrders.has(orderId));
     return !!totalOrders.length;
   };
 
-  const ignoreStuckOrders = async (symbol = 'ETHUSDT') => {
-    const totalOrders = await binance.openOrders({ symbol });
-    totalOrders
-      .filter(({ time }) => dayjs().diff(dayjs(time), 'minute') >= 15)
-      .forEach(({ orderId }) => IGNORE_ORDERS.add(orderId));
+  const ignoreStuckOrders = async (/* symbol = 'ETHUSDT' */) => {
+    const stuckSet = new Set(
+      PENDING_ORDERS_LIST.filter(
+        ({ stamp }) => dayjs().diff(dayjs(stamp), 'minute') >= 15,
+      ).map(({ orderId }) => orderId),
+    );
+    PENDING_ORDERS_LIST = PENDING_ORDERS_LIST.filter(
+      ({ orderId }) => !stuckSet.has(orderId),
+    );
   };
 
   const isOrderFullfilled = async (symbol = 'ETHUSDT', orderId: number) => {
@@ -246,6 +254,11 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     if (!sellOrderId) {
       throw new Error('holdUSDT sendSellQTY failed');
     }
+
+    PENDING_ORDERS_LIST.push({
+      orderId: sellOrderId,
+      stamp: Date.now(),
+    });
 
     for (let i = 0; i !== 10; i++) {
       if (await isOrderFullfilled('ETHUSDT', sellOrderId)) {
