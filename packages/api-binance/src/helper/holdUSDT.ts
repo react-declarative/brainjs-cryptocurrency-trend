@@ -196,10 +196,12 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
     if (await hasOpenOrders('ETHUSDT')) {
+      logger.log("has orders");
       return;
     }
 
     if ((await getBalance('USDT')) <= usdtAmount * 1.03) {
+      logger.log("no funds");
       return;
     }
 
