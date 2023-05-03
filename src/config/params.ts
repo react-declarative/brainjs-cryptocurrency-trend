@@ -12,7 +12,6 @@ export const CC_ROLLBACK_HANDLER = '/api/v1/do_rollback';
 export const CC_INFORM_HANDLER = '/api/v1/do_inform';
 
 export const CC_TRADE_AMOUNT = 100;
-export const CC_TRADE_PERCENT = 1.01;
 
 export const CC_PLAYSOUND_MINUTES = 15;
 export const CC_LIVENESS_DELAY = 5_000;

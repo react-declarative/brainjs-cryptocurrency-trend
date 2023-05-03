@@ -1,4 +1,4 @@
-import { fetchApi, singlerun, roundTicks, Subject } from "react-declarative";
+import { fetchApi, singlerun, Subject } from "react-declarative";
 
 import getTimeLabel from "../../utils/getTimeLabel";
 
@@ -12,13 +12,12 @@ export const errorSubject = new Subject<"now" | "schedule" | "drop">();
  *      1. does nothing if have pending request (avoid duplicated requests)
  *      2. does nothing if have unresolved order (opened LIMIT_SELL or opened LIMIT_BUY with incoming LIMIT_SELL)
  */
-export const doTrade = singlerun(async (sellPercent: number, usdtAmount: number) => {
+export const doTrade = singlerun(async (usdtAmount: number) => {
     try {
         const { status } = await fetchApi(new URL(CC_TRADE_HANDLER, window.location.origin), {
             method: "POST",
             body: JSON.stringify({
                 symbol: "ETHUSDT",
-                sellPercent: roundTicks(sellPercent, 6),
                 usdtAmount: usdtAmount.toFixed(0),
             }, null, 2),
             headers: {

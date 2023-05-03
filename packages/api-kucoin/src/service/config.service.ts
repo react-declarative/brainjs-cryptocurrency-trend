@@ -14,7 +14,7 @@ export class ConfigService {
       staticPath: process.env.STATIC_PATH || '',
       host: process.env.APP_HOST || '0.0.0.0',
       port: +process.env.APP_PORT || 8080,
-      shouldTrade: !!+process.env.SHOULD_TRADE || false,
+      shouldTrade: !!+process.env.SHOULD_TRADE || true,
     };
   }
 

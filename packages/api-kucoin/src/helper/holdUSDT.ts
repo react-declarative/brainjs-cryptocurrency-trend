@@ -1,6 +1,9 @@
 import * as API from 'kucoin-node-sdk';
 import * as uuid from 'uuid';
 
+const FAST_BUY_COEF = 1.002;
+const SELL_PERCENT = 0.001;
+
 export const sleep = (timeout = 1_000) =>
   new Promise<void>((res) => {
     setTimeout(() => res(), timeout);
@@ -104,7 +107,7 @@ export const sendBuyUSDT = async (
     sizeDecimalPlaces: number;
   },
 ): Promise<string | null> => {
-  const fastPrice = marketPrice * 1.001;
+  const fastPrice = marketPrice * FAST_BUY_COEF;
   const size = usdToCoins(usdtAmount, fastPrice);
   const { data: { orderId: buyOrderId = '' } = {} } =
     await API.rest.Trade.Orders.postOrder(
@@ -164,15 +167,17 @@ export const getTradeInfo = async (symbol = 'ETH-USDT') => {
   };
 };
 
-export const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
+export const holdUSDT = async (usdtAmount = 100) => {
   if (await hasOpenOrders('ETH-USDT')) {
     return;
   }
 
   const { marketPrice, priceDecimalPlaces, sizeDecimalPlaces } =
     await getTradeInfo();
-  const { maker } = await getTradeFee('ETH-USDT');
+  const { maker, taker } = await getTradeFee('ETH-USDT');
   const balanceBefore = await getBalance('ETH');
+
+  const sellPercent = 1.0 + SELL_PERCENT + maker + taker;
 
   const buyOrderId = await sendBuyUSDT(usdtAmount, {
     marketPrice,

@@ -8,6 +8,7 @@ interface IOrder {
 }
 
 const FAST_BUY_COEF = 1.001;
+const SELL_PERCENT = 0.001;
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   let PENDING_ORDERS_LIST: IOrder[] = [];
@@ -73,8 +74,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       (fee) => fee.symbol === symbol,
     );
     return {
-      maker: makerCommission,
-      taker: takerCommission,
+      maker: parseFloat(makerCommission.toString()),
+      taker: parseFloat(takerCommission.toString()),
     };
   };
 
@@ -156,10 +157,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
     },
-  ): Promise<{
-    buyOrderId: number | null;
-    buyUpperPrice: number;
-  }> => {
+  ): Promise<number | null> => {
     const fastPrice = marketPrice * FAST_BUY_COEF;
     const size = usdToCoins(usdtAmount, fastPrice);
     logger.log(`buy symbol=${symbol} price=${fastPrice} size=${size}`);
@@ -170,10 +168,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       quantity: roundTicks(size, sizeDecimalPlaces),
       price: roundTicks(fastPrice, priceDecimalPlaces),
     });
-    return {
-      buyOrderId: buyOrderId || null,
-      buyUpperPrice: fastPrice,
-    };
+    return buyOrderId || null;
   };
 
   const sendSellQTY = async (
@@ -184,28 +179,25 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
-      minPrice,
     }: {
       marketPrice: number;
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
-      minPrice: number;
     },
   ): Promise<number | null> => {
     const winPrice = marketPrice * sellPercent;
     logger.log(`sell symbol=${symbol} price=${winPrice} size=${ethQuantity}`);
     const { orderId: sellOrderId } = await binance.order({
-      type: OrderType.TAKE_PROFIT_LIMIT,
+      type: OrderType.LIMIT,
       side: 'SELL',
       symbol,
-      stopPrice: roundTicks(winPrice, priceDecimalPlaces),
       quantity: roundTicks(ethQuantity, sizeDecimalPlaces),
-      price: roundTicks(minPrice, priceDecimalPlaces),
+      price: roundTicks(winPrice, priceDecimalPlaces),
     });
     return sellOrderId || null;
   };
 
-  const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
+  const holdUSDT = async (usdtAmount = 100) => {
     if (await hasOpenOrders('ETHUSDT')) {
       logger.log('has orders');
       return;
@@ -213,18 +205,16 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
     const { marketPrice, priceDecimalPlaces, sizeDecimalPlaces } =
       await getTradeInfo('ETHUSDT');
-    const { maker } = await getTransactionFee('ETHUSDT');
+    const { maker, taker } = await getTransactionFee('ETHUSDT');
     const balanceBefore = await getBalance('ETH');
 
-    const { buyOrderId, buyUpperPrice } = await sendBuyUSDT(
-      'ETHUSDT',
-      usdtAmount,
-      {
-        marketPrice,
-        priceDecimalPlaces,
-        sizeDecimalPlaces,
-      },
-    );
+    const sellPercent = 1.0 + maker + taker + SELL_PERCENT;
+
+    const buyOrderId = await sendBuyUSDT('ETHUSDT', usdtAmount, {
+      marketPrice,
+      priceDecimalPlaces,
+      sizeDecimalPlaces,
+    });
 
     if (!buyOrderId) {
       throw new Error('holdUSDT sendBuyUSDT failed');
@@ -254,7 +244,6 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
-      minPrice: buyUpperPrice * (1 + +maker),
     });
 
     if (!sellOrderId) {

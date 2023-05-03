@@ -33,10 +33,7 @@ export class ApiController {
   public async doTrade(@Body() tradeDto: DoTradeDto): Promise<ResponseDto> {
     try {
       if (this.configService.globalConfig.shouldTrade) {
-        await this.apiService.doTrade(
-          tradeDto.sellPercent,
-          tradeDto.usdtAmount,
-        );
+        await this.apiService.doTrade(tradeDto.usdtAmount);
       }
       return createOk();
     } catch (error) {

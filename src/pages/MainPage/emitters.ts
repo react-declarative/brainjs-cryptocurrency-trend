@@ -6,7 +6,7 @@ import playSound, { Sound } from "../../utils/playSound";
 
 import { doNotify, doTrade, doRollback, errorSubject } from "./api";
 
-import { CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT, CC_TRADE_PERCENT } from "../../config/params";
+import { CC_PLAYSOUND_MINUTES, CC_TRADE_AMOUNT } from "../../config/params";
 
 export const predictEmitter = new Subject<"train" | "upward" | "downward" | "untrained" | null>();
 
@@ -44,7 +44,7 @@ const downwardEmitter = Source.multicast(() => predictEmitter
 const doEmit = singlerun(async (trend) => {
     doNotify(trend);
     if (trend === "upward") {
-        await doTrade(CC_TRADE_PERCENT, CC_TRADE_AMOUNT);
+        await doTrade(CC_TRADE_AMOUNT);
     }
     if (trend === "downward") {
         await doRollback();

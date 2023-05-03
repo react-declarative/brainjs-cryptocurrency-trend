@@ -61,11 +61,9 @@ export class ApiService implements OnModuleInit {
     });
   }
 
-  async doTrade(sellPercent: string, usdtAmount: string) {
-    this.loggerService.log(
-      `api-service do_trade sell_percent=${sellPercent} usdt_amount=${usdtAmount}`,
-    );
-    await this.holdUSDT(parseFloat(sellPercent), parseInt(usdtAmount));
+  async doTrade(usdtAmount: string) {
+    this.loggerService.log(`api-service do_trade usdt_amount=${usdtAmount}`);
+    await this.holdUSDT(parseInt(usdtAmount));
   }
 
   async doRollback() {
