@@ -154,7 +154,10 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
     },
-  ): Promise<number | null> => {
+  ): Promise<{
+    buyOrderId: number | null;
+    buyUpperPrice: number;
+  }> => {
     const fastPrice = marketPrice * 1.001;
     const size = usdToCoins(usdtAmount, fastPrice);
     logger.log(`buy symbol=${symbol} price=${fastPrice} size=${size}`);
@@ -165,7 +168,10 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       quantity: roundTicks(size, sizeDecimalPlaces),
       price: roundTicks(fastPrice, priceDecimalPlaces),
     });
-    return buyOrderId || null;
+    return {
+      buyOrderId: buyOrderId || null,
+      buyUpperPrice: fastPrice,
+    };
   };
 
   const sendSellQTY = async (
@@ -176,18 +182,21 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
+      stopPrice,
     }: {
       marketPrice: number;
       priceDecimalPlaces: string;
       sizeDecimalPlaces: string;
+      stopPrice: number;
     },
   ): Promise<number | null> => {
     const winPrice = marketPrice * sellPercent;
     logger.log(`sell symbol=${symbol} price=${winPrice} size=${ethQuantity}`);
     const { orderId: sellOrderId } = await binance.order({
-      type: OrderType.LIMIT,
+      type: OrderType.TAKE_PROFIT_LIMIT,
       side: 'SELL',
       symbol,
+      stopPrice: roundTicks(stopPrice, priceDecimalPlaces),
       quantity: roundTicks(ethQuantity, sizeDecimalPlaces),
       price: roundTicks(winPrice, priceDecimalPlaces),
     });
@@ -196,7 +205,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const holdUSDT = async (sellPercent = 1.01, usdtAmount = 100) => {
     if (await hasOpenOrders('ETHUSDT')) {
-      logger.log("has orders");
+      logger.log('has orders');
       return;
     }
 
@@ -205,11 +214,15 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     const { maker } = await getTransactionFee('ETHUSDT');
     const balanceBefore = await getBalance('ETH');
 
-    const buyOrderId = await sendBuyUSDT('ETHUSDT', usdtAmount, {
-      marketPrice,
-      priceDecimalPlaces,
-      sizeDecimalPlaces,
-    });
+    const { buyOrderId, buyUpperPrice: stopPrice } = await sendBuyUSDT(
+      'ETHUSDT',
+      usdtAmount,
+      {
+        marketPrice,
+        priceDecimalPlaces,
+        sizeDecimalPlaces,
+      },
+    );
 
     if (!buyOrderId) {
       throw new Error('holdUSDT sendBuyUSDT failed');
@@ -239,6 +252,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       marketPrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
+      stopPrice,
     });
 
     if (!sellOrderId) {
@@ -257,7 +271,9 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       await sleep();
     }
 
-    logger.log(`holdUSDT pair buyOrderId=${buyOrderId} sellOrderId=${sellOrderId} sellPercent=${sellPercent} usdtAmount=${usdtAmount}`);
+    logger.log(
+      `holdUSDT pair buyOrderId=${buyOrderId} sellOrderId=${sellOrderId} sellPercent=${sellPercent} usdtAmount=${usdtAmount} stopPrice=${stopPrice}`,
+    );
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
