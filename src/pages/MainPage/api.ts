@@ -37,10 +37,14 @@ export const doTrade = singlerun(async (usdtAmount: number) => {
     }
 });
 
-export const doRollback = singlerun(async () => {
+export const doRollback = singlerun(async (usdtAmount: number) => {
     try {
         const { status } = await fetchApi(new URL(CC_ROLLBACK_HANDLER, window.location.origin), {
             method: "POST",
+            body: JSON.stringify({
+                symbol: "ETHUSDT",
+                usdtAmount: usdtAmount.toFixed(0),
+            }, null, 2),
         });
         console.log(`rollback request sended status=${status} ${getTimeLabel(new Date())}`);
         if (status === "ok") {

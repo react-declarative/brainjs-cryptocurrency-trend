@@ -47,7 +47,7 @@ const doEmit = singlerun(async (trend) => {
         await doTrade(CC_TRADE_AMOUNT);
     }
     if (trend === "downward") {
-        await doRollback();
+        await doRollback(CC_TRADE_AMOUNT);
     }
 });
 
