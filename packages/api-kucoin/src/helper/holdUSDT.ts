@@ -1,8 +1,17 @@
 import * as API from 'kucoin-node-sdk';
+import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';
 
-const FAST_BUY_COEF = 1.002;
+interface IOrder {
+  orderId: string;
+  stamp: number;
+}
+
+const FAST_BUY_COEF = 1.001;
 const SELL_PERCENT = 0.001;
+const ORDER_AWAIT_MINUTES = 5;
+
+let PENDING_ORDERS_LIST: IOrder[] = [];
 
 export const sleep = (timeout = 1_000) =>
   new Promise<void>((res) => {
@@ -42,12 +51,18 @@ export const hasOpenOrders = async (symbol = 'ETH-USDT') => {
   const {
     data: { items = [] },
   } = await API.rest.Trade.Orders.getOrdersList();
+  const activeOrders = PENDING_ORDERS_LIST.filter(
+    ({ stamp }) => dayjs().diff(dayjs(stamp), 'minute') <= ORDER_AWAIT_MINUTES,
+  );
+  const myOrders = new Set(activeOrders.map(({ orderId }) => orderId));
   const { length = 0 } = items.filter((item) => {
     let isOk = true;
+    isOk = isOk && myOrders.has(item.id);
     isOk = isOk && item.symbol === symbol;
     isOk = isOk && item.isActive;
     return isOk;
   });
+  PENDING_ORDERS_LIST = activeOrders;
   return !!length;
 };
 
@@ -218,6 +233,11 @@ export const holdUSDT = async (usdtAmount = 100) => {
   if (!sellOrderId) {
     throw new Error('holdUSDT sendSellQTY failed');
   }
+
+  PENDING_ORDERS_LIST.push({
+    orderId: sellOrderId,
+    stamp: Date.now(),
+  });
 
   for (let i = 0; i !== 10; i++) {
     if (await isOrderFullfilled(sellOrderId)) {
