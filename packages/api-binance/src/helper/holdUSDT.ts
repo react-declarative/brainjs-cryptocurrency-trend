@@ -8,7 +8,7 @@ interface IOrder {
 }
 
 const FAST_TRADE_COEF = 1.001;
-const SELL_PERCENT = 0.01;
+const SELL_PERCENT = 0.08;
 const ORDER_AWAIT_MINUTES = 60;
 const BUY_ITER_DELAY = 10;
 const SELL_ITER_DELAY = 25;
@@ -342,11 +342,10 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       logger.log(
         `averageUSDT averading not resolved in ${SELL_ITER_DELAY} seconds sellOrderId=${sellOrderId}`,
       );
-      await cancelOrder('ETHUSDT', sellOrderId);
     }
 
     logger.log(
-      `holdUSDT pair sellOrderId=${sellOrderId} pendingSellQty=${pendingSellQty} fastTradePrice=${fastTradePrice} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
+      `averageUSDT pair sellOrderId=${sellOrderId} pendingSellQty=${pendingSellQty} fastTradePrice=${fastTradePrice} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
     );
   };
 
