@@ -14,6 +14,7 @@ export class ApiService implements OnModuleInit {
   private binance: ReturnType<typeof Binance> = null as never;
 
   private holdUSDT: ReturnType<typeof createHoldUSDT>['holdUSDT'];
+  private averageUSDT: ReturnType<typeof createHoldUSDT>['averageUSDT'];
 
   constructor(
     private readonly configService: ConfigService,
@@ -28,8 +29,12 @@ export class ApiService implements OnModuleInit {
         apiSecret: undefined,
       }),
     });
-    const { holdUSDT } = createHoldUSDT(this.binance, this.loggerService);
+    const { holdUSDT, averageUSDT } = createHoldUSDT(
+      this.binance,
+      this.loggerService,
+    );
     this.holdUSDT = holdUSDT;
+    this.averageUSDT = averageUSDT;
   }
 
   getCandleEmitter() {
@@ -66,7 +71,8 @@ export class ApiService implements OnModuleInit {
     await this.holdUSDT(parseInt(usdtAmount));
   }
 
-  async doRollback() {
+  async doRollback(usdtAmount: string) {
     this.loggerService.log(`api-service do_rollback`);
+    await this.averageUSDT(parseInt(usdtAmount));
   }
 }

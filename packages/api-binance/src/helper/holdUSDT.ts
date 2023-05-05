@@ -7,12 +7,14 @@ interface IOrder {
   stamp: number;
 }
 
-const FAST_BUY_COEF = 1.001;
+const FAST_TRADE_COEF = 1.001;
 const SELL_PERCENT = 0.001;
 const ORDER_AWAIT_MINUTES = 5;
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   let PENDING_ORDERS_LIST: IOrder[] = [];
+
+  const inversePercent = (percent: number) => 1 - percent + percent;
 
   const roundTicks = (price: number, tickSize = '0.00010000') => {
     const formatter = new Intl.NumberFormat('en-US', {
@@ -160,7 +162,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       sizeDecimalPlaces: string;
     },
   ): Promise<number | null> => {
-    const fastPrice = marketPrice * FAST_BUY_COEF;
+    const fastPrice = marketPrice * FAST_TRADE_COEF;
     const size = usdToCoins(usdtAmount, fastPrice);
     logger.log(`buy symbol=${symbol} price=${fastPrice} size=${size}`);
     const { orderId: buyOrderId } = await binance.order({
@@ -201,7 +203,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const holdUSDT = async (usdtAmount = 100) => {
     if (await hasOpenOrders('ETHUSDT')) {
-      logger.log('has orders');
+      logger.log('holdUSDT has orders');
       return;
     }
 
@@ -269,6 +271,76 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     );
   };
 
+  const averageUSDT = async (usdtAmount = 100) => {
+    const { marketPrice, priceDecimalPlaces, sizeDecimalPlaces } =
+      await getTradeInfo('ETHUSDT');
+    const { maker } = await getTransactionFee('ETHUSDT');
+
+    const fastTradePrice = marketPrice * inversePercent(FAST_TRADE_COEF);
+
+    const myOrders = new Set(PENDING_ORDERS_LIST.map(({ orderId }) => orderId));
+
+    const allOrders = await binance.openOrders({ symbol: 'ETHUSDT' });
+    const pendingSellOrders = allOrders
+      .filter(({ orderId }) => !myOrders.has(orderId))
+      .filter(({ side }) => side === 'SELL')
+      .filter(({ status }) => status === 'NEW')
+      .filter(({ price }) => fastTradePrice >= parseFloat(price))
+      .filter(
+        ({ price, origQty }) =>
+          Math.abs(usdtAmount - parseFloat(price) * parseFloat(origQty)) < 5,
+      )
+      .filter(({ origQuoteOrderQty }) => parseFloat(origQuoteOrderQty) === 0);
+
+    let pendingSellAmount = pendingSellOrders.reduce(
+      (acm, { origQty }) => acm + parseFloat(origQty) * fastTradePrice,
+      0,
+    );
+
+    pendingSellAmount -= pendingSellAmount * maker;
+
+    if (usdtAmount * pendingSellOrders.length > pendingSellAmount) {
+      logger.log(
+        `averageUSDT averading not available pendingSellAmount=${pendingSellAmount} pendingSellOrders=${pendingSellOrders.length}`,
+      );
+      return;
+    }
+
+    for (const { orderId } of pendingSellOrders) {
+      await cancelOrder('ETHUSDT', orderId);
+    }
+
+    const sellOrderId = await sendSellQTY('ETHUSDT', pendingSellAmount, 1.0, {
+      marketPrice: fastTradePrice,
+      priceDecimalPlaces,
+      sizeDecimalPlaces,
+    });
+
+    if (!sellOrderId) {
+      throw new Error('averageUSDT sendSellQTY failed');
+    }
+
+    let isClosed = false;
+    for (let i = 0; i !== 10; i++) {
+      if (await isOrderFullfilled('ETHUSDT', sellOrderId)) {
+        isClosed = true;
+        break;
+      }
+      await sleep();
+    }
+
+    if (!isClosed) {
+      logger.log(
+        `averageUSDT averading not resolved in 10 seconds sellOrderId=${sellOrderId}`,
+      );
+      await cancelOrder('ETHUSDT', sellOrderId);
+    }
+
+    logger.log(
+      `holdUSDT pair sellOrderId=${sellOrderId} pendingSellAmount=${pendingSellAmount} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
+    );
+  };
+
   (globalThis as any).hasOpenOrders = hasOpenOrders;
   (globalThis as any).getBalance = getBalance;
   (globalThis as any).getTradeFee = getTransactionFee;
@@ -282,5 +354,6 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   return {
     holdUSDT,
+    averageUSDT,
   };
 };

@@ -104,4 +104,8 @@ export class ApiService implements OnModuleInit {
     this.loggerService.log(`api-service do_trade usdt_amount=${usdtAmount}`);
     await holdUSDT(parseInt(usdtAmount));
   }
+
+  async doRollback(usdtAmount: string) {
+    this.loggerService.log(`api-service do_rollback usdt_amount=${usdtAmount}`);
+  }
 }
