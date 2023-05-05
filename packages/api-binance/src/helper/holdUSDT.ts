@@ -8,8 +8,10 @@ interface IOrder {
 }
 
 const FAST_TRADE_COEF = 1.001;
-const SELL_PERCENT = 0.001;
-const ORDER_AWAIT_MINUTES = 5;
+const SELL_PERCENT = 0.01;
+const ORDER_AWAIT_MINUTES = 60;
+const BUY_ITER_DELAY = 10;
+const SELL_ITER_DELAY = 25;
 
 export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   let PENDING_ORDERS_LIST: IOrder[] = [];
@@ -226,7 +228,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
     let isOk = false;
 
-    for (let i = 0; i !== 10; i++) {
+    for (let i = 0; i !== BUY_ITER_DELAY; i++) {
       if (await isOrderFullfilled('ETHUSDT', buyOrderId)) {
         isOk = true;
         break;
@@ -259,7 +261,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       stamp: Date.now(),
     });
 
-    for (let i = 0; i !== 10; i++) {
+    for (let i = 0; i !== SELL_ITER_DELAY; i++) {
       if (await isOrderFullfilled('ETHUSDT', sellOrderId)) {
         break;
       }
@@ -278,11 +280,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
     const fastTradePrice = marketPrice * inversePercent(FAST_TRADE_COEF);
 
-    const myOrders = new Set(PENDING_ORDERS_LIST.map(({ orderId }) => orderId));
-
     const allOrders = await binance.openOrders({ symbol: 'ETHUSDT' });
     const pendingSellOrders = allOrders
-      .filter(({ orderId }) => !myOrders.has(orderId))
       .filter(({ side }) => side === 'SELL')
       .filter(({ status }) => status === 'NEW')
       .filter(({ price }) => fastTradePrice >= parseFloat(price))
@@ -292,16 +291,26 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       )
       .filter(({ origQuoteOrderQty }) => parseFloat(origQuoteOrderQty) === 0);
 
-    let pendingSellAmount = pendingSellOrders.reduce(
-      (acm, { origQty }) => acm + parseFloat(origQty) * fastTradePrice,
+    let pendingSellQty = pendingSellOrders.reduce(
+      (acm, { origQty }) => acm + parseFloat(origQty),
       0,
     );
 
-    pendingSellAmount -= pendingSellAmount * maker;
+    pendingSellQty -= pendingSellQty * maker;
 
-    if (usdtAmount * pendingSellOrders.length > pendingSellAmount) {
+    if (pendingSellOrders.length === 0) {
       logger.log(
-        `averageUSDT averading not available pendingSellAmount=${pendingSellAmount} pendingSellOrders=${pendingSellOrders.length}`,
+        `averageUSDT averading not available (no orders under the criteria)`,
+      );
+      return;
+    }
+
+    if (
+      usdtAmount * pendingSellOrders.length >
+      pendingSellQty * fastTradePrice
+    ) {
+      logger.log(
+        `averageUSDT averading not available pendingSellQty=${pendingSellQty} fastTradePrice=${fastTradePrice} pendingSellOrders=${pendingSellOrders.length}`,
       );
       return;
     }
@@ -310,7 +319,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       await cancelOrder('ETHUSDT', orderId);
     }
 
-    const sellOrderId = await sendSellQTY('ETHUSDT', pendingSellAmount, 1.0, {
+    const sellOrderId = await sendSellQTY('ETHUSDT', pendingSellQty, 1.0, {
       marketPrice: fastTradePrice,
       priceDecimalPlaces,
       sizeDecimalPlaces,
@@ -321,7 +330,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     }
 
     let isClosed = false;
-    for (let i = 0; i !== 10; i++) {
+    for (let i = 0; i !== SELL_ITER_DELAY; i++) {
       if (await isOrderFullfilled('ETHUSDT', sellOrderId)) {
         isClosed = true;
         break;
@@ -331,13 +340,13 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
     if (!isClosed) {
       logger.log(
-        `averageUSDT averading not resolved in 10 seconds sellOrderId=${sellOrderId}`,
+        `averageUSDT averading not resolved in ${SELL_ITER_DELAY} seconds sellOrderId=${sellOrderId}`,
       );
       await cancelOrder('ETHUSDT', sellOrderId);
     }
 
     logger.log(
-      `holdUSDT pair sellOrderId=${sellOrderId} pendingSellAmount=${pendingSellAmount} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
+      `holdUSDT pair sellOrderId=${sellOrderId} pendingSellQty=${pendingSellQty} fastTradePrice=${fastTradePrice} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
     );
   };
 
