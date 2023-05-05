@@ -122,7 +122,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
     let totalOrders = await binance.openOrders({ symbol });
     const activeOrders = PENDING_ORDERS_LIST.filter(
-      ({ stamp }) => dayjs().diff(dayjs(stamp), 'minute') <= ORDER_AWAIT_MINUTES,
+      ({ stamp }) =>
+        dayjs().diff(dayjs(stamp), 'minute') <= ORDER_AWAIT_MINUTES,
     );
     const myOrders = new Set(activeOrders.map(({ orderId }) => orderId));
     PENDING_ORDERS_LIST = activeOrders;
