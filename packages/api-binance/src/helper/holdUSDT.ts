@@ -295,6 +295,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       0,
     );
 
+    pendingSellQty += await getBalance('ETH');
     pendingSellQty -= pendingSellQty * maker;
 
     if (pendingSellOrders.length === 0) {
@@ -304,12 +305,14 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
       return;
     }
 
-    let walletBalance = pendingSellQty * buyFee;
-    walletBalance += await getBalance('ETH');
+    const estimateOriginQty = pendingSellQty * buyFee;
 
-    if (usdtAmount * pendingSellOrders.length > walletBalance * marketPrice) {
+    if (
+      usdtAmount * pendingSellOrders.length >
+      estimateOriginQty * marketPrice
+    ) {
       logger.log(
-        `averageUSDT averading not available pendingSellQty=${pendingSellQty} marketPrice=${marketPrice} pendingSellOrders=${pendingSellOrders.length}`,
+        `averageUSDT averading not available pendingSellQty=${pendingSellQty} estimateOriginQty=${estimateOriginQty} marketPrice=${marketPrice} pendingSellOrders=${pendingSellOrders.length}`,
       );
       return;
     }
