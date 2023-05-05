@@ -18,6 +18,9 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
   const inversePercent = (percent: number) => 1 - percent + 1;
 
+  const getPercent = (source: number, percent: number) =>
+    Math.floor((source / 100) * percent);
+
   const roundTicks = (price: number, tickSize = '0.00010000') => {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'decimal',
@@ -280,13 +283,16 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
 
     const buyFee = inversePercent(FAST_TRADE_COEF) - taker;
 
+    const criteriaThreshold = getPercent(usdtAmount, 30);
+
     const allOrders = await binance.openOrders({ symbol: 'ETHUSDT' });
     const pendingSellOrders = allOrders
       .filter(({ side }) => side === 'SELL')
       .filter(({ status }) => status === 'NEW')
       .filter(
         ({ price, origQty }) =>
-          Math.abs(usdtAmount - parseFloat(price) * parseFloat(origQty)) < 5,
+          Math.abs(usdtAmount - parseFloat(price) * parseFloat(origQty)) <
+          criteriaThreshold,
       )
       .filter(({ origQuoteOrderQty }) => parseFloat(origQuoteOrderQty) === 0);
 
