@@ -91,6 +91,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     const ticks = await binance.candles({
       symbol,
       interval: '1m',
+      limit: 1,
     });
     const candles = ticks.map(({ high, closeTime: time }) => ({ high, time }));
     const sorted = candles.sort(({ time: a }, { time: b }) => b - a);
@@ -273,6 +274,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     logger.log(
       `holdUSDT pair buyOrderId=${buyOrderId} sellOrderId=${sellOrderId} sellPercent=${sellPercent} usdtAmount=${usdtAmount}`,
     );
+
+    await sleep();
   };
 
   const averageUSDT = async (usdtAmount = 100) => {
@@ -346,6 +349,8 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
     logger.log(
       `averageUSDT pair sellOrderId=${sellOrderId} pendingSellQty=${pendingSellQty} marketPrice=${marketPrice} pendingSellOrders=${pendingSellOrders.length} usdtAmount=${usdtAmount}`,
     );
+
+    await sleep();
   };
 
   (globalThis as any).hasOpenOrders = hasOpenOrders;
