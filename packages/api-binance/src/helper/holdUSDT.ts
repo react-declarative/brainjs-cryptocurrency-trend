@@ -9,7 +9,7 @@ interface IOrder {
 
 const FAST_TRADE_COEF = 1.001;
 const SELL_PERCENT = 0.08; // 0.8% (our) + 0.1% (maker) + 0.1% (taker)
-const ORDER_AWAIT_MINUTES = 60;
+const ORDER_AWAIT_HOURS = 8;
 const BUY_ITER_DELAY = 10;
 const SELL_ITER_DELAY = 25;
 
@@ -129,8 +129,7 @@ export const createHoldUSDT = (binance: Binance, logger: LoggerService) => {
   const hasOpenOrders = async (symbol = 'ETHUSDT') => {
     let totalOrders = await binance.openOrders({ symbol });
     const activeOrders = PENDING_ORDERS_LIST.filter(
-      ({ stamp }) =>
-        dayjs().diff(dayjs(stamp), 'minute') <= ORDER_AWAIT_MINUTES,
+      ({ stamp }) => dayjs().diff(dayjs(stamp), 'hour') <= ORDER_AWAIT_HOURS,
     );
     const myOrders = new Set(activeOrders.map(({ orderId }) => orderId));
     PENDING_ORDERS_LIST = activeOrders;
