@@ -16,4 +16,4 @@ export const CC_TRADE_AMOUNT = 100;
 export const CC_PLAYSOUND_MINUTES = 15;
 export const CC_LIVENESS_DELAY = 5_000;
 export const CC_NET_TICK = 5_000;
-export const CC_NET_REPEAT = 500;
+export const CC_NET_REPEAT = 1_000;
