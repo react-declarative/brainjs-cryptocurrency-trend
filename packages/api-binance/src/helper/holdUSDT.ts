@@ -9,7 +9,7 @@ interface IOrder {
 
 const FAST_TRADE_COEF = 1.001;
 const SELL_PERCENT = 0.08; // 0.8% (our) + 0.1% (maker) + 0.1% (taker)
-const ORDER_AWAIT_HOURS = 8;
+const ORDER_AWAIT_HOURS = 16;
 const BUY_ITER_DELAY = 10;
 const SELL_ITER_DELAY = 25;
 
