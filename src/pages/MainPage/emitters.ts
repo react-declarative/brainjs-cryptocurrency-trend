@@ -1,4 +1,4 @@
-import { Subject, Source, singlerun } from "react-declarative";
+import { Subject, Source, Operator, singlerun } from "react-declarative";
 
 import dayjs from "dayjs";
 
@@ -41,8 +41,13 @@ const downwardEmitter = Source.multicast(() => predictEmitter
     .filter((trend) => trend === "downward")
 );
 
-const doEmit = singlerun(async (trend) => {
-    doNotify(trend);
+const doEmit = singlerun(async ({ value: trend, count }: {
+    value: "upward" | "downward";
+    count: number;
+}) => {
+    if (count === 0) {
+        doNotify(trend);
+    }
     if (trend === "upward") {
         await doTrade(CC_TRADE_AMOUNT);
     }
@@ -57,6 +62,7 @@ const tradeEmitter = Source.multicast(() => Source
         downwardEmitter,
     ])
     .repeat(CC_NET_REPEAT)
+    .operator(Operator.count())
 );
 
 tradeEmitter.connect(doEmit);
